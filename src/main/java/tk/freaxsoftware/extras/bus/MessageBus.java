@@ -73,7 +73,7 @@ public final class MessageBus {
      * @param args message arguments;
      * @param callback post-execution callback;
      */
-    public static void fireMessage(final String messageId, final Map<String, Object> args, final Callback callback) {
+    public static void fireMessageSync(final String messageId, final Map<String, Object> args, final Callback callback) {
         if (subscriptionMap.containsKey(messageId)) {
             Subscription currentSubscription = subscriptionMap.get(messageId);
             Map<String, Object> result = new HashMap<>();
@@ -90,12 +90,12 @@ public final class MessageBus {
      * @param args message arguments;
      * @param callback post-execution callback;
      */
-    public static void fireMessageThreaded(final String messageId, final Map<String, Object> args, final Callback callback) {
+    public static void fireMessage(final String messageId, final Map<String, Object> args, final Callback callback) {
         threadService.submit(new Runnable() {
 
             @Override
             public void run() {
-                fireMessage(messageId, args, callback);
+                fireMessageSync(messageId, args, callback);
             }
         });
     }
