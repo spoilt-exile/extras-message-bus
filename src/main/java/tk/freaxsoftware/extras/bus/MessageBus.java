@@ -23,12 +23,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Main message bus entry class.
  * @author Stanislav Nepochatov
  */
 public final class MessageBus {
+    
+    private static final Logger logger = LoggerFactory.getLogger(MessageBus.class);
     
     /**
      * Map of all subscription for messages.
@@ -46,10 +50,12 @@ public final class MessageBus {
      * @param receiver message receiver;
      */
     public static void addSubscription(final String id, final Receiver receiver) {
+        logger.info("add new subscription for " + id);
         if (subscriptionMap.containsKey(id)) {
             Subscription currentSubscription = subscriptionMap.get(id);
             currentSubscription.addReceiver(receiver);
         } else {
+            logger.debug("creating new subscription instance for " + id);
             Subscription newSubscription = new Subscription(id);
             newSubscription.addReceiver(receiver);
             subscriptionMap.put(id, newSubscription);
@@ -65,6 +71,39 @@ public final class MessageBus {
         for (String id: ids) {
             addSubscription(id, receiver);
         }
+    }
+    
+    /**
+     * Unsubscribe following receiver from message id.
+     * @param id message id;
+     * @param receiver the same receiver instance which were using during subscription;
+     */
+    public static void removeSubscription(final String id, final Receiver receiver) {
+        if (subscriptionMap.containsKey(id)) {
+            Subscription currentSubscription = subscriptionMap.get(id);
+            currentSubscription.removeReceiver(receiver);
+            if (currentSubscription.getReceivers().isEmpty()) {
+                subscriptionMap.remove(id);
+            }
+        }
+    }
+    
+    /**
+     * Unsubscribe following receiver from following message ids.
+     * @param ids array of message ids to unsubscribe;
+     * @param receiver the same receiver instance which were using during subscription;
+     */
+    public static void removeSubscriptions(final String[] ids, final Receiver receiver) {
+        for (String id: ids) {
+            removeSubscription(id, receiver);
+        }
+    }
+    
+    /**
+     * Clear all subscriptions. This action reset whole message bus. Use with care.
+     */
+    public static void clearBus() {
+        subscriptionMap.clear();
     }
     
     /**

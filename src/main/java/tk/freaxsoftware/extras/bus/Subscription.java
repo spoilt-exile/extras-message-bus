@@ -58,7 +58,15 @@ public class Subscription {
         this.receivers = receivers;
     }
     
+    /**
+     * Add specified receiver to queue.
+     * @param receiver receiver to add;
+     */
     public void addReceiver(Receiver receiver) {
         this.receivers.add(receiver);
+    }
+    
+    public void removeReceiver(Receiver receiver) {
+        this.receivers.remove(receiver);
     }
 }
