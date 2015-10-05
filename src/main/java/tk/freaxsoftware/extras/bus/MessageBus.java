@@ -119,7 +119,9 @@ public final class MessageBus {
             for (Receiver receiver: currentSubscription.getReceivers()) {
                 receiver.receive(messageId, args, result);
             }
-            callback.callback(result);
+            if (callback != null) {
+                callback.callback(result);
+            }
         }
     }
     
