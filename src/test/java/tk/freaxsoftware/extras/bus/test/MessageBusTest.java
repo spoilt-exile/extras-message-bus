@@ -55,7 +55,7 @@ public class MessageBusTest {
 
             @Override
             public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) {
-                assertNotNull(messageId);
+                assertEquals(messageId, EMPTY_MESSAGE);
                 logger.warn(messageId + " received!");
             }
         });
@@ -63,6 +63,7 @@ public class MessageBusTest {
 
             @Override
             public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) {
+                assertEquals(messageId, MULTIPLIE_MESSAGE);
                 logger.warn(messageId + " received!");
                 Integer digit1 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT1);
                 Integer digit2 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT2);
@@ -93,6 +94,7 @@ public class MessageBusTest {
     
     @After
     public void tearDown() {
+        MessageBus.clearBus();
     }
     
 }

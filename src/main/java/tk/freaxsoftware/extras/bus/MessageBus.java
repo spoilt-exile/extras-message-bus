@@ -79,10 +79,12 @@ public final class MessageBus {
      * @param receiver the same receiver instance which were using during subscription;
      */
     public static void removeSubscription(final String id, final Receiver receiver) {
+        logger.info("removing subscription for " + id);
         if (subscriptionMap.containsKey(id)) {
             Subscription currentSubscription = subscriptionMap.get(id);
             currentSubscription.removeReceiver(receiver);
             if (currentSubscription.getReceivers().isEmpty()) {
+                logger.debug("deleting subscription record for " + id);
                 subscriptionMap.remove(id);
             }
         }
@@ -103,6 +105,7 @@ public final class MessageBus {
      * Clear all subscriptions. This action reset whole message bus. Use with care.
      */
     public static void clearBus() {
+        logger.info("clearing all subscriptions... Reinit subscriptions to proceed.");
         subscriptionMap.clear();
     }
     
@@ -113,6 +116,7 @@ public final class MessageBus {
      * @param callback post-execution callback;
      */
     public static void fireMessageSync(final String messageId, final Map<String, Object> args, final Callback callback) {
+        logger.info(messageId + " message fired to bus");
         if (subscriptionMap.containsKey(messageId)) {
             Subscription currentSubscription = subscriptionMap.get(messageId);
             Map<String, Object> result = new HashMap<>();
@@ -132,6 +136,7 @@ public final class MessageBus {
      * @param callback post-execution callback;
      */
     public static void fireMessage(final String messageId, final Map<String, Object> args, final Callback callback) {
+        logger.info("start async thread for message " + messageId);
         threadService.submit(new Runnable() {
 
             @Override
