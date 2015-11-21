@@ -54,15 +54,24 @@ public class MessageBusTest {
         MessageBus.addSubscription(EMPTY_MESSAGE, new Receiver() {
 
             @Override
-            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) {
+            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
                 assertEquals(messageId, EMPTY_MESSAGE);
                 logger.warn(messageId + " received!");
             }
         });
+        MessageBus.addSubscription(EMPTY_MESSAGE, new Receiver() {
+
+            @Override
+            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
+                logger.debug("empty message received, throwing exception");
+                throw new Exception("Test message");
+            }
+            
+        });
         MessageBus.addSubscription(MULTIPLIE_MESSAGE, new Receiver() {
 
             @Override
-            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) {
+            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
                 assertEquals(messageId, MULTIPLIE_MESSAGE);
                 logger.warn(messageId + " received!");
                 Integer digit1 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT1);

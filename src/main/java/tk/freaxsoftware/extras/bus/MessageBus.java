@@ -121,7 +121,11 @@ public final class MessageBus {
             Subscription currentSubscription = subscriptionMap.get(messageId);
             Map<String, Object> result = new HashMap<>();
             for (Receiver receiver: currentSubscription.getReceivers()) {
-                receiver.receive(messageId, args, result);
+                try {
+                    receiver.receive(messageId, args, result);
+                } catch (Exception ex) {
+                    logger.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
+                }
             }
             if (callback != null) {
                 callback.callback(result);

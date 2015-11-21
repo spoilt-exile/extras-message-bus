@@ -32,7 +32,8 @@ public interface Receiver {
      * @param messageId message id string;
      * @param arguments arguments passed with message dispatch;
      * @param result message processing result which may be returned to peer;
+     * @throws Exception receiver may throws any exception;
      */
-    void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result);
+    void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception;
     
 }
