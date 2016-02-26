@@ -36,7 +36,7 @@ import tk.freaxsoftware.extras.faststorage.reading.EntityStreamReaderImpl;
  */
 public class MessageBusIgnition {
     
-    private static final Logger logger = LoggerFactory.getLogger(MessageBusIgnition.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBusIgnition.class);
     
     /**
      * Reads receivers's info from stream and init them with registration.
@@ -45,11 +45,11 @@ public class MessageBusIgnition {
      */
     public static void ignite(InputStream descriptorStream) throws EntityProcessingException {
         Reader reader = new InputStreamReader(descriptorStream);
-        logger.warn("Processing ignition...");
+        LOGGER.warn("Processing ignition...");
         EntityStreamReader<ReceiverEntry> entityReader = new EntityStreamReaderImpl<>(ReceiverEntry.class, ReceiverEntry.DEFINITION);
         List<ReceiverEntry> receiversList = entityReader.readEntities(reader);
         for (ReceiverEntry receiverEntry: receiversList) {
-            logger.warn("Processing entry: " + receiverEntry);
+            LOGGER.warn("Processing entry: " + receiverEntry);
             Receiver receiver = igniteReceiver(receiverEntry);
             if (receiver != null) {
                 String[] subscriptions = receiverEntry.getMessageSubscriptions().toArray(new String[receiverEntry.getMessageSubscriptions().size()]);
@@ -69,15 +69,15 @@ public class MessageBusIgnition {
         try {
             receiverClass = Class.forName(entry.getReceiverClass());
         } catch (ClassNotFoundException clex) {
-            logger.error("Can't find class: " + entry.getReceiverClass());
+            LOGGER.error("Can't find class: " + entry.getReceiverClass());
         }
         if (receiverClass != null) {
             try {
                 receiver = (Receiver) receiverClass.newInstance();
             } catch (InstantiationException | IllegalAccessException insex) {
-                logger.error("Class " + entry.getReceiverClass() + " can't be instance due absent public constructor or else", insex);
+                LOGGER.error("Class " + entry.getReceiverClass() + " can't be instance due absent public constructor or else", insex);
             } catch (ClassCastException clex) {
-                logger.error("Class " + entry.getReceiverClass() + " can't be casted to Receiver instance.", clex);
+                LOGGER.error("Class " + entry.getReceiverClass() + " can't be casted to Receiver instance.", clex);
             }
         }
         return receiver;

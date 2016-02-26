@@ -31,6 +31,8 @@ import tk.freaxsoftware.extras.faststorage.writing.EntityWriter;
  */
 public class ReceiverEntry implements ECSVAble<String>{
     
+    public static final String TYPE = "RECEIVER";
+    
     public static final ECSVDefinition DEFINITION = ECSVDefinition.createNew()
             .addPrimitive(ECSVFields.PR_STRING)
             .addArray(null);
@@ -90,6 +92,11 @@ public class ReceiverEntry implements ECSVAble<String>{
     @Override
     public void update(ECSVAble<String> updatedEntity) {
         throw new UnsupportedOperationException("Not supported.");
+    }
+    
+    @Override
+    public String getEntityType() {
+        return TYPE;
     }
 
     @Override
