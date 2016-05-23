@@ -28,6 +28,16 @@ import java.util.Map;
 public interface Callback {
     
     /**
+     * Check result map for tips from bus if message processing was successfull or 
+     * halted with error. Result may contains data from receivers so detail inspection required.
+     * @param result result map;
+     * @return true - no errors founded, false - there is exception stored in map or something else;
+     */
+    default Boolean isSuccessful(Map<String, Object> result) {
+        return !result.containsKey(MessageBus.LAST_EXCEPTION);
+    }
+    
+    /**
      * Callback method which will be executed after all message process.
      * @param result result of execution;
      */
