@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.Callback;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.Receiver;
+import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
+import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
  * Generic test of message bus.
@@ -38,6 +40,7 @@ public class MessageBusTest {
     
     private final Logger logger = LoggerFactory.getLogger(MessageBusTest.class);
     
+    private static final String INCORRECT_MESSAGE = "MessageTest.INCORRECT_MESSAGE";
     private static final String EMPTY_MESSAGE = "MessageTest.EMPTY_MESSAGE";
     private static final String MULTIPLIE_MESSAGE = "MessageTest.MULTIPLIE_MESSAGE";
     
@@ -46,11 +49,13 @@ public class MessageBusTest {
     
     private static final String RES_MULTIPLIE = "MessageTest.Arg.RES";
     
+    private static final String EXCEPTION_MESSAGE = "Test exception";
+    
     public MessageBusTest() {
     }
     
     @Before
-    public void setUp() {
+    public void setUp() throws ReceiverRegistrationException {
         MessageBus.addSubscription(EMPTY_MESSAGE, new Receiver() {
 
             @Override
@@ -64,7 +69,7 @@ public class MessageBusTest {
             @Override
             public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
                 logger.debug("empty message received, throwing exception");
-                throw new Exception("Test message");
+                throw new Exception(EXCEPTION_MESSAGE);
             }
             
         });
@@ -88,6 +93,15 @@ public class MessageBusTest {
     }
     
     @Test
+    public void emptyMessageException() {
+        MessageBus.fireMessageSync(EMPTY_MESSAGE, null, (result) -> {
+            assertTrue(result.containsKey(MessageBus.LAST_EXCEPTION));
+            Exception last = (Exception) result.get(MessageBus.LAST_EXCEPTION);
+            assertEquals(last.getMessage(), EXCEPTION_MESSAGE);
+        });
+    }
+    
+    @Test
     public void multiplieMessage() {
         Map<String, Object> args = new HashMap<>();
         args.put(ARG_MULTIPLIE_DIGIT1, 2);
@@ -97,8 +111,21 @@ public class MessageBusTest {
             @Override
             public void callback(Map<String, Object> result) {
                 logger.warn("result of multiplication; " + result.get(RES_MULTIPLIE));
+                assertTrue(result.containsKey(RES_MULTIPLIE));
+                Integer resultInt = (Integer) result.get(RES_MULTIPLIE);
+                assertEquals(resultInt, new Integer(4));
             }
         });
+    }
+    
+    @Test
+    public void checkedTest() throws NoSubscriptionMessageException {
+        MessageBus.fireMessageSyncChecked(EMPTY_MESSAGE, null, null);
+    }
+    
+    @Test(expected = NoSubscriptionMessageException.class)
+    public void checkedTestFail() throws NoSubscriptionMessageException {
+        MessageBus.fireMessageSyncChecked(INCORRECT_MESSAGE, null, null);
     }
     
     @After

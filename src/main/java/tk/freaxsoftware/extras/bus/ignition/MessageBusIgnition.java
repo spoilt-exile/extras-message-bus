@@ -26,6 +26,7 @@ import java.util.List;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.Receiver;
+import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 import tk.freaxsoftware.extras.faststorage.exception.EntityProcessingException;
 import tk.freaxsoftware.extras.faststorage.reading.EntityStreamReader;
 import tk.freaxsoftware.extras.faststorage.reading.EntityStreamReaderImpl;
@@ -53,7 +54,11 @@ public class MessageBusIgnition {
             Receiver receiver = igniteReceiver(receiverEntry);
             if (receiver != null) {
                 String[] subscriptions = receiverEntry.getMessageSubscriptions().toArray(new String[receiverEntry.getMessageSubscriptions().size()]);
-                MessageBus.addSubscriptions(subscriptions, receiver);
+                try {
+                    MessageBus.addSubscriptions(subscriptions, receiver);
+                } catch (ReceiverRegistrationException ex) {
+                    LOGGER.error("Unable to register entry: " + receiverEntry);
+                }
             }
         }
     }

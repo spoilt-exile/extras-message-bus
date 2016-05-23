@@ -21,10 +21,13 @@ package tk.freaxsoftware.extras.bus;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
+import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
  * Main message bus entry class.
@@ -34,10 +37,12 @@ public final class MessageBus {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageBus.class);
     
+    public static final String LAST_EXCEPTION = "MessageBus.Internal.LAST_EXCEPTION";
+    
     /**
      * Map of all subscription for messages.
      */
-    private static final Map<String, Subscription> subscriptionMap = new HashMap<>();
+    private static final Map<String, Subscription> subscriptionMap = new ConcurrentHashMap<>();
     
     /**
      * Thread pool executor.
@@ -49,7 +54,10 @@ public final class MessageBus {
      * @param id message id string;
      * @param receiver message receiver;
      */
-    public static void addSubscription(final String id, final Receiver receiver) {
+    public static void addSubscription(final String id, final Receiver receiver) throws ReceiverRegistrationException {
+        if (id == null || receiver == null) {
+            throw new ReceiverRegistrationException("Can't processed registration with null references!");
+        }
         LOGGER.info("add new subscription for " + id);
         if (subscriptionMap.containsKey(id)) {
             Subscription currentSubscription = subscriptionMap.get(id);
@@ -67,7 +75,7 @@ public final class MessageBus {
      * @param ids array of ids;
      * @param receiver message receiver;
      */
-    public static void addSubscriptions(final String[] ids, final Receiver receiver) {
+    public static void addSubscriptions(final String[] ids, final Receiver receiver) throws ReceiverRegistrationException {
         for (String id: ids) {
             addSubscription(id, receiver);
         }
@@ -125,6 +133,7 @@ public final class MessageBus {
                     receiver.receive(messageId, args, result);
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
+                    result.put(LAST_EXCEPTION, ex);
                 }
             }
             if (callback != null) {
@@ -141,11 +150,45 @@ public final class MessageBus {
      */
     public static void fireMessage(final String messageId, final Map<String, Object> args, final Callback callback) {
         LOGGER.info("start async thread for message " + messageId);
-        threadService.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                fireMessageSync(messageId, args, callback);
+        threadService.submit(() -> {
+            fireMessageSync(messageId, args, callback);
+        });
+    }
+    
+    /**
+     * Fire messageto the bus with additional checking. If there is no subscribers, 
+     * then {@code NoSubscriptionMessageException} will be throwned. Sync method.
+     * @param messageId id of message;
+     * @param args message arguments;
+     * @param callback post-execution callback;
+     * @see NoSubscriptionMessageException
+     */
+    public static void fireMessageSyncChecked(final String messageId, final Map<String, Object> args, final Callback callback) throws NoSubscriptionMessageException {
+        if (subscriptionMap.containsKey(messageId)) {
+            fireMessageSync(messageId, args, callback);
+        } else {
+            throw new NoSubscriptionMessageException("Message " + messageId + "has no subscriptions on this bus!");
+        }
+    }
+    
+    /**
+     * Fire message to the bus with additional check. ASYNC METHOD!
+     * @param messageId id of message;
+     * @param args message arguments;
+     * @param callback post-execution callback;
+     */
+    public static void fireMessageChecked(final String messageId, final Map<String, Object> args, final Callback callback) {
+        LOGGER.info("start async thread for message " + messageId);
+        threadService.submit(() -> {
+            try {
+                fireMessageSyncChecked(messageId, args, callback);
+            } catch (NoSubscriptionMessageException nox) {
+                LOGGER.error("Can't process " + messageId + ": no subscriptions!");
+                if (callback != null) {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put(LAST_EXCEPTION, nox);
+                    callback.callback(result);
+                }
             }
         });
     }
