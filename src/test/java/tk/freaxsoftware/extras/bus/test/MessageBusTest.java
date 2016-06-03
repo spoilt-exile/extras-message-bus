@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.Callback;
+import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
@@ -95,8 +96,8 @@ public class MessageBusTest {
     @Test
     public void emptyMessageException() {
         MessageBus.fireMessageSync(EMPTY_MESSAGE, null, (result) -> {
-            assertTrue(result.containsKey(MessageBus.LAST_EXCEPTION));
-            Exception last = (Exception) result.get(MessageBus.LAST_EXCEPTION);
+            assertTrue(result.containsKey(GlobalIds.GLOBAL_EXCEPTION));
+            Exception last = (Exception) result.get(GlobalIds.GLOBAL_EXCEPTION);
             assertEquals(last.getMessage(), EXCEPTION_MESSAGE);
         });
     }

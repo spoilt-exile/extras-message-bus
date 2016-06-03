@@ -37,8 +37,6 @@ public final class MessageBus {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageBus.class);
     
-    public static final String LAST_EXCEPTION = "MessageBus.Internal.LAST_EXCEPTION";
-    
     /**
      * Map of all subscription for messages.
      */
@@ -133,7 +131,7 @@ public final class MessageBus {
                     receiver.receive(messageId, args, result);
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                    result.put(LAST_EXCEPTION, ex);
+                    result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
                 }
             }
             if (callback != null) {
@@ -186,7 +184,7 @@ public final class MessageBus {
                 LOGGER.error("Can't process " + messageId + ": no subscriptions!");
                 if (callback != null) {
                     Map<String, Object> result = new HashMap<>();
-                    result.put(LAST_EXCEPTION, nox);
+                    result.put(GlobalIds.GLOBAL_EXCEPTION, nox);
                     callback.callback(result);
                 }
             }

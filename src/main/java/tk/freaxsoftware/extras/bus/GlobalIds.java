@@ -16,31 +16,26 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-
 package tk.freaxsoftware.extras.bus;
 
-import java.util.Map;
-
 /**
- * Message post execution callback interface.
+ * Global ids class provide name of global and wide used messages and data keys.
  * @author Stanislav Nepochatov
  */
-public interface Callback {
+public class GlobalIds {
     
     /**
-     * Check result map for tips from bus if message processing was successfull or 
-     * halted with error. Result may contains data from receivers so detail inspection required.
-     * @param result result map;
-     * @return true - no errors founded, false - there is exception stored in map or something else;
+     * Exception holder in result. May be overrided by last executed receiver.
      */
-    default Boolean isSuccessful(Map<String, Object> result) {
-        return !result.containsKey(GlobalIds.GLOBAL_EXCEPTION);
-    }
+    public static final String GLOBAL_EXCEPTION = "Global.Exception";
     
     /**
-     * Callback method which will be executed after all message process.
-     * @param result result of execution;
+     * Id for result of simple messaging. Result is not an error.
      */
-    void callback(Map<String, Object> result);
+    public static final String GLOBAL_MESSAGE = "Global.Message";
     
+    /**
+     * Id of error message result.
+     */
+    public static final String GLOBAL_ERROR_MESSAGE = "Global.Error.Message";
 }
