@@ -19,18 +19,28 @@
 
 package tk.freaxsoftware.extras.bus;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Message post execution callback interface.
+ * Message argument helper;
  * @author Stanislav Nepochatov
  */
-public interface Callback {
+public class ArgHelper {
     
-    /**
-     * Callback method which will be executed after all message process.
-     * @param result result of execution;
-     */
-    void callback(Map<String, Object> result);
+    private final Map<String, Object> args = new HashMap<>();
+    
+    public ArgHelper putArg(String argKey, Object argValue) {
+        this.args.put(argKey, argValue);
+        return this;
+    }
+    
+    public Map<String, Object> getArgs() {
+        return this.args;
+    }
+    
+    public static final ArgHelper newInstance() {
+        return new ArgHelper();
+    }
     
 }

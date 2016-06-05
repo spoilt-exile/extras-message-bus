@@ -141,6 +141,16 @@ public final class MessageBus {
     }
     
     /**
+     * Fire message to the bus with arg helper. SYNC METHOD!
+     * @param messageId id of message;
+     * @param argsHelper message arguments helper;
+     * @param callback post-execution callback;
+     */
+    public static void fireMessageSyncHelped(final String messageId, final ArgHelper argsHelper, final Callback callback) {
+        fireMessageSync(messageId, argsHelper.getArgs(), callback);
+    }
+    
+    /**
      * Fire message to the bus. ASYNC METHOD!
      * @param messageId id of message;
      * @param args message arguments;
@@ -154,11 +164,22 @@ public final class MessageBus {
     }
     
     /**
+     * Fire message to the bus with arg helper. ASYNC METHOD!
+     * @param messageId id of message;
+     * @param argHelper message arguments helper;
+     * @param callback post-execution callback;
+     */
+    public static void fireMessageHelped(final String messageId, final ArgHelper argHelper, final Callback callback) {
+        fireMessage(messageId, argHelper.getArgs(), callback);
+    }
+    
+    /**
      * Fire messageto the bus with additional checking. If there is no subscribers, 
      * then {@code NoSubscriptionMessageException} will be throwned. Sync method.
      * @param messageId id of message;
      * @param args message arguments;
      * @param callback post-execution callback;
+     * @throws tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException
      * @see NoSubscriptionMessageException
      */
     public static void fireMessageSyncChecked(final String messageId, final Map<String, Object> args, final Callback callback) throws NoSubscriptionMessageException {
@@ -167,6 +188,19 @@ public final class MessageBus {
         } else {
             throw new NoSubscriptionMessageException("Message " + messageId + "has no subscriptions on this bus!");
         }
+    }
+    
+    /**
+     * Fire messageto the bus with additional checking and arg helper. If there is no subscribers, 
+     * then {@code NoSubscriptionMessageException} will be throwned. Sync method.
+     * @param messageId id of message;
+     * @param argHelper message arguments helper;
+     * @param callback post-execution callback;
+     * @throws tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException
+     * @see NoSubscriptionMessageException
+     */
+    public static void fireMessageSyncCheckedHelped(final String messageId, final ArgHelper argHelper, final Callback callback) throws NoSubscriptionMessageException {
+        fireMessageSyncChecked(messageId, argHelper.getArgs(), callback);
     }
     
     /**
@@ -189,5 +223,25 @@ public final class MessageBus {
                 }
             }
         });
+    }
+    
+    /**
+     * Fire message to the bus with additional check with arg helper. ASYNC METHOD!
+     * @param messageId id of message;
+     * @param argHelper message arguments helper;
+     * @param callback post-execution callback;
+     */
+    public static void fireMessageCheckedHelper(final String messageId, final ArgHelper argHelper, final Callback callback) {
+        fireMessageChecked(messageId, argHelper.getArgs(), callback);
+    }
+    
+    /**
+     * Check result map for tips from bus if message processing was successfull or 
+     * halted with error. Result may contains data from receivers so detail inspection required.
+     * @param result result map;
+     * @return true - no errors founded, false - there is exception stored in map or something else;
+     */
+    public static Boolean isSuccessful(Map<String, Object> result) {
+        return !result.containsKey(GlobalIds.GLOBAL_EXCEPTION) || !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
     }
 }
