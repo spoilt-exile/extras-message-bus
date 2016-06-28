@@ -242,6 +242,6 @@ public final class MessageBus {
      * @return true - no errors founded, false - there is exception stored in map or something else;
      */
     public static Boolean isSuccessful(Map<String, Object> result) {
-        return !result.containsKey(GlobalIds.GLOBAL_EXCEPTION) || !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
+        return !result.containsKey(GlobalIds.GLOBAL_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
     }
 }
