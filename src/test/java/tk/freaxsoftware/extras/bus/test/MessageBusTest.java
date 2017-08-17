@@ -18,7 +18,6 @@
  */
 package tk.freaxsoftware.extras.bus.test;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -28,8 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.ArgBuilder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
-import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
@@ -51,40 +50,34 @@ public class MessageBusTest {
     
     private static final String EXCEPTION_MESSAGE = "Test exception";
     
+    private static final String ROUND_ROBIN_MESSAGE = "Round.Robin.Test";
+    
     public MessageBusTest() {
     }
     
     @Before
     public void setUp() throws ReceiverRegistrationException {
-        MessageBus.addSubscription(EMPTY_MESSAGE, new Receiver() {
-
-            @Override
-            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
-                assertEquals(messageId, EMPTY_MESSAGE);
-                logger.warn(messageId + " received!");
-            }
+        MessageBus.addSubscription(EMPTY_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
+            logger.debug("empty message received, throwing exception");
+            throw new Exception(EXCEPTION_MESSAGE);
         });
-        MessageBus.addSubscription(EMPTY_MESSAGE, new Receiver() {
-
-            @Override
-            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
-                logger.debug("empty message received, throwing exception");
-                throw new Exception(EXCEPTION_MESSAGE);
-            }
-            
+        MessageBus.addSubscription(EMPTY_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
+            assertEquals(messageId, EMPTY_MESSAGE);
+            logger.warn(messageId + " received!");
         });
-        MessageBus.addSubscription(MULTIPLIE_MESSAGE, new Receiver() {
-
-            @Override
-            public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
-                assertEquals(messageId, MULTIPLIE_MESSAGE);
-                logger.warn(messageId + " received!");
-                Integer digit1 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT1);
-                Integer digit2 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT2);
-                Integer multiplied = digit1 * digit2;
-                result.put(RES_MULTIPLIE, multiplied);
-            }
+        MessageBus.addSubscription(MULTIPLIE_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
+            assertEquals(messageId, MULTIPLIE_MESSAGE);
+            logger.warn(messageId + " received!");
+            Integer digit1 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT1);
+            Integer digit2 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT2);
+            Integer multiplied = digit1 * digit2;
+            result.put(RES_MULTIPLIE, multiplied);
         });
+        MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(1));
+        MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(2));
+        MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(3));
+        MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(4));
+        MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(5));
     }
     
     @Test
@@ -103,15 +96,21 @@ public class MessageBusTest {
     
     @Test
     public void multiplieMessage() {
-        Map<String, Object> args = new HashMap<>();
-        args.put(ARG_MULTIPLIE_DIGIT1, 2);
-        args.put(ARG_MULTIPLIE_DIGIT2, 2);
-        MessageBus.fire(MULTIPLIE_MESSAGE, args, MessageOptions.Builder.newInstance().callback((result) -> {
+        MessageBus.fire(MULTIPLIE_MESSAGE, ArgBuilder.newInstance().putArg(ARG_MULTIPLIE_DIGIT1, 2).putArg(ARG_MULTIPLIE_DIGIT2, 2).build(), MessageOptions.Builder.newInstance().callback((result) -> {
             logger.warn("result of multiplication; " + result.get(RES_MULTIPLIE));
             assertTrue(result.containsKey(RES_MULTIPLIE));
             Integer resultInt = (Integer) result.get(RES_MULTIPLIE);
             assertEquals(resultInt, new Integer(4));
         }).build());
+    }
+    
+    @Test
+    public void testRoundRobin() {
+        for (int outer = 0; outer < 3; outer++) {
+            for (int inner = 1; inner < 6; inner++) {
+                MessageBus.fire(ROUND_ROBIN_MESSAGE, ArgBuilder.newInstance().putArg(RoundRobinReceiver.ROUND_ROBIN_KEY, inner).build());
+            }
+        }
     }
     
     @After

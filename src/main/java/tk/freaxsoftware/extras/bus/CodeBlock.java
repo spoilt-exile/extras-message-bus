@@ -19,28 +19,14 @@
 
 package tk.freaxsoftware.extras.bus;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Message argument helper;
+ * Code block to fold some operation in block which can be executed sync/async.
  * @author Stanislav Nepochatov
  */
-public class ArgHelper {
+public interface CodeBlock {
     
-    private final Map<String, Object> args = new HashMap<>();
-    
-    public ArgHelper putArg(String argKey, Object argValue) {
-        this.args.put(argKey, argValue);
-        return this;
-    }
-    
-    public Map<String, Object> getArgs() {
-        return this.args;
-    }
-    
-    public static final ArgHelper newInstance() {
-        return new ArgHelper();
-    }
-    
+    /**
+     * Main execution method.
+     */
+    void exec();
 }

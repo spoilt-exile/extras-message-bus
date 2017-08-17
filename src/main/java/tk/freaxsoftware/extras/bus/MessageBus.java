@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
@@ -42,11 +40,6 @@ public final class MessageBus {
      * Map of all subscription for messages.
      */
     private static final List<Subscription> subscriptions = new CopyOnWriteArrayList<>();
-    
-    /**
-     * Thread pool executor.
-     */
-    private static final ExecutorService threadService = Executors.newFixedThreadPool(4);
     
     /**
      * Subscribe receiver for message with following id.
@@ -132,21 +125,36 @@ public final class MessageBus {
      * @param options options for message processing;
      */
     public static void fire(final String messageId, final Map<String, Object> args, final MessageOptions options) {
+        if (options == null) {
+            throw new IllegalArgumentException("Message options can't be null!");
+        }
         LOGGER.info(messageId + " message fired to bus");
         Subscription subscription = getSubscription(messageId);
         if (subscription != null) {
-            Map<String, Object> result = new HashMap<>();
-            for (Receiver receiver: subscription.getReceivers()) {
-                try {
-                    receiver.receive(messageId, args, result);
-                } catch (Exception ex) {
-                    LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                    result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
+            BlockExecutor.getExecutor().execute(() -> {
+                Map<String, Object> result = new HashMap<>();
+                if (options.isBroadcast()) {
+                    for (Receiver receiver: subscription.getReceivers()) {
+                        try {
+                            receiver.receive(messageId, args, result);
+                        } catch (Exception ex) {
+                            LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
+                            result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
+                        }
+                    }
+                } else {
+                    Receiver singleReceiver = subscription.getRoundRobinIterator().next();
+                    try {
+                        singleReceiver.receive(messageId, args, result);
+                    } catch (Exception ex) {
+                        LOGGER.error("Receiver " + singleReceiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
+                        result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
+                    }
+                    if (options.getCallback() != null) {
+                        options.getCallback().callback(result);
+                    }
                 }
-            }
-            if (options.getCallback() != null) {
-                options.getCallback().callback(result);
-            }
+            }, options.isAsync());
         }
     }
     
