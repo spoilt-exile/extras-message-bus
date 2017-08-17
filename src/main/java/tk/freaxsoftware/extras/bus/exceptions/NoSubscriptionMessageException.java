@@ -22,7 +22,7 @@ package tk.freaxsoftware.extras.bus.exceptions;
  * Message has no subscribers so can't be processed by bus.
  * @author Stanislav Nepochatov
  */
-public class NoSubscriptionMessageException extends Exception {
+public class NoSubscriptionMessageException extends RuntimeException {
 
     public NoSubscriptionMessageException(String message) {
         super(message);

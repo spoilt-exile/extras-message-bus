@@ -26,11 +26,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.Callback;
 import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.Receiver;
-import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
@@ -90,16 +89,16 @@ public class MessageBusTest {
     
     @Test
     public void emptyMessage() {
-        MessageBus.fireMessageSync(EMPTY_MESSAGE, null, null);
+        MessageBus.fire(EMPTY_MESSAGE, null);
     }
     
     @Test
     public void emptyMessageException() {
-        MessageBus.fireMessageSync(EMPTY_MESSAGE, null, (result) -> {
+        MessageBus.fire(EMPTY_MESSAGE, null, MessageOptions.Builder.newInstance().callback((result) -> {
             assertTrue(result.containsKey(GlobalIds.GLOBAL_EXCEPTION));
             Exception last = (Exception) result.get(GlobalIds.GLOBAL_EXCEPTION);
             assertEquals(last.getMessage(), EXCEPTION_MESSAGE);
-        });
+        }).build());
     }
     
     @Test
@@ -107,26 +106,12 @@ public class MessageBusTest {
         Map<String, Object> args = new HashMap<>();
         args.put(ARG_MULTIPLIE_DIGIT1, 2);
         args.put(ARG_MULTIPLIE_DIGIT2, 2);
-        MessageBus.fireMessageSync(MULTIPLIE_MESSAGE, args, new Callback() {
-
-            @Override
-            public void callback(Map<String, Object> result) {
-                logger.warn("result of multiplication; " + result.get(RES_MULTIPLIE));
-                assertTrue(result.containsKey(RES_MULTIPLIE));
-                Integer resultInt = (Integer) result.get(RES_MULTIPLIE);
-                assertEquals(resultInt, new Integer(4));
-            }
-        });
-    }
-    
-    @Test
-    public void checkedTest() throws NoSubscriptionMessageException {
-        MessageBus.fireMessageSyncChecked(EMPTY_MESSAGE, null, null);
-    }
-    
-    @Test(expected = NoSubscriptionMessageException.class)
-    public void checkedTestFail() throws NoSubscriptionMessageException {
-        MessageBus.fireMessageSyncChecked(INCORRECT_MESSAGE, null, null);
+        MessageBus.fire(MULTIPLIE_MESSAGE, args, MessageOptions.Builder.newInstance().callback((result) -> {
+            logger.warn("result of multiplication; " + result.get(RES_MULTIPLIE));
+            assertTrue(result.containsKey(RES_MULTIPLIE));
+            Integer resultInt = (Integer) result.get(RES_MULTIPLIE);
+            assertEquals(resultInt, new Integer(4));
+        }).build());
     }
     
     @After

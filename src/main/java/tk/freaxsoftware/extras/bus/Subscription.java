@@ -18,8 +18,8 @@
  */
 package tk.freaxsoftware.extras.bus;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Message listener holder for specified message id.
@@ -37,13 +37,15 @@ public class Subscription {
      */
     private List<Receiver> receivers;
     
+    private RoundRobinIterator<Receiver> roundRobinIterator;
+    
     /**
      * Default constructor.
      * @param id id of subscription.
      */
     public Subscription(String id) {
         this.id = id;
-        receivers = new ArrayList<>();
+        receivers = new CopyOnWriteArrayList<>();
     }
 
     public String getId() {
@@ -68,5 +70,12 @@ public class Subscription {
     
     public void removeReceiver(Receiver receiver) {
         this.receivers.remove(receiver);
+    }
+
+    public RoundRobinIterator<Receiver> getRoundRobinIterator() {
+        if (roundRobinIterator == null) {
+            roundRobinIterator = new RoundRobinIterator<>(receivers);
+        }
+        return roundRobinIterator;
     }
 }

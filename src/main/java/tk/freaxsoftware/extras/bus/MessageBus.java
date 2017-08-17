@@ -20,13 +20,14 @@
 package tk.freaxsoftware.extras.bus;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
@@ -40,7 +41,7 @@ public final class MessageBus {
     /**
      * Map of all subscription for messages.
      */
-    private static final Map<String, Subscription> subscriptionMap = new ConcurrentHashMap<>();
+    private static final List<Subscription> subscriptions = new CopyOnWriteArrayList<>();
     
     /**
      * Thread pool executor.
@@ -51,20 +52,20 @@ public final class MessageBus {
      * Subscribe receiver for message with following id.
      * @param id message id string;
      * @param receiver message receiver;
+     * @throws tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException
      */
     public static void addSubscription(final String id, final Receiver receiver) throws ReceiverRegistrationException {
         if (id == null || receiver == null) {
             throw new ReceiverRegistrationException("Can't processed registration with null references!");
         }
         LOGGER.info("add new subscription for " + id);
-        if (subscriptionMap.containsKey(id)) {
-            Subscription currentSubscription = subscriptionMap.get(id);
-            currentSubscription.addReceiver(receiver);
+        Subscription subscription = getSubscription(id);
+        if (subscription == null) {
+            subscription = new Subscription(id);
+            subscription.addReceiver(receiver);
+            subscriptions.add(subscription);
         } else {
-            LOGGER.debug("creating new subscription instance for " + id);
-            Subscription newSubscription = new Subscription(id);
-            newSubscription.addReceiver(receiver);
-            subscriptionMap.put(id, newSubscription);
+            subscription.addReceiver(receiver);
         }
     }
     
@@ -72,6 +73,7 @@ public final class MessageBus {
      * Subscribe receiver for multiplie messages ids.
      * @param ids array of ids;
      * @param receiver message receiver;
+     * @throws tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException
      */
     public static void addSubscriptions(final String[] ids, final Receiver receiver) throws ReceiverRegistrationException {
         for (String id: ids) {
@@ -86,12 +88,11 @@ public final class MessageBus {
      */
     public static void removeSubscription(final String id, final Receiver receiver) {
         LOGGER.info("removing subscription for " + id);
-        if (subscriptionMap.containsKey(id)) {
-            Subscription currentSubscription = subscriptionMap.get(id);
-            currentSubscription.removeReceiver(receiver);
-            if (currentSubscription.getReceivers().isEmpty()) {
-                LOGGER.debug("deleting subscription record for " + id);
-                subscriptionMap.remove(id);
+        Subscription subscription = getSubscription(id);
+        if (subscription != null) {
+            subscription.getReceivers().remove(receiver);
+            if (subscription.getReceivers().isEmpty()) {
+                subscriptions.remove(subscription);
             }
         }
     }
@@ -112,21 +113,30 @@ public final class MessageBus {
      */
     public static void clearBus() {
         LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
-        subscriptionMap.clear();
+        subscriptions.clear();
     }
     
     /**
-     * Fire message to the bus. SYNC METHOD!
+     * Fire message to the bus.
      * @param messageId id of message;
      * @param args message arguments;
-     * @param callback post-execution callback;
      */
-    public static void fireMessageSync(final String messageId, final Map<String, Object> args, final Callback callback) {
+    public static void fire(final String messageId, final Map<String, Object> args) {
+        fire(messageId, args, MessageOptions.defaultOptions());
+    }
+    
+    /**
+     * Fire message to the bus.
+     * @param messageId id of message;
+     * @param args message arguments;
+     * @param options options for message processing;
+     */
+    public static void fire(final String messageId, final Map<String, Object> args, final MessageOptions options) {
         LOGGER.info(messageId + " message fired to bus");
-        if (subscriptionMap.containsKey(messageId)) {
-            Subscription currentSubscription = subscriptionMap.get(messageId);
+        Subscription subscription = getSubscription(messageId);
+        if (subscription != null) {
             Map<String, Object> result = new HashMap<>();
-            for (Receiver receiver: currentSubscription.getReceivers()) {
+            for (Receiver receiver: subscription.getReceivers()) {
                 try {
                     receiver.receive(messageId, args, result);
                 } catch (Exception ex) {
@@ -134,105 +144,24 @@ public final class MessageBus {
                     result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
                 }
             }
-            if (callback != null) {
-                callback.callback(result);
+            if (options.getCallback() != null) {
+                options.getCallback().callback(result);
             }
         }
     }
     
     /**
-     * Fire message to the bus with arg helper. SYNC METHOD!
-     * @param messageId id of message;
-     * @param argsHelper message arguments helper;
-     * @param callback post-execution callback;
+     * Get subscription for message id;
+     * @param messageId id of message to address;
+     * @return subscription holder;
      */
-    public static void fireMessageSyncHelped(final String messageId, final ArgHelper argsHelper, final Callback callback) {
-        fireMessageSync(messageId, argsHelper.getArgs(), callback);
-    }
-    
-    /**
-     * Fire message to the bus. ASYNC METHOD!
-     * @param messageId id of message;
-     * @param args message arguments;
-     * @param callback post-execution callback;
-     */
-    public static void fireMessage(final String messageId, final Map<String, Object> args, final Callback callback) {
-        LOGGER.info("start async thread for message " + messageId);
-        threadService.submit(() -> {
-            fireMessageSync(messageId, args, callback);
-        });
-    }
-    
-    /**
-     * Fire message to the bus with arg helper. ASYNC METHOD!
-     * @param messageId id of message;
-     * @param argHelper message arguments helper;
-     * @param callback post-execution callback;
-     */
-    public static void fireMessageHelped(final String messageId, final ArgHelper argHelper, final Callback callback) {
-        fireMessage(messageId, argHelper.getArgs(), callback);
-    }
-    
-    /**
-     * Fire messageto the bus with additional checking. If there is no subscribers, 
-     * then {@code NoSubscriptionMessageException} will be throwned. Sync method.
-     * @param messageId id of message;
-     * @param args message arguments;
-     * @param callback post-execution callback;
-     * @throws tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException
-     * @see NoSubscriptionMessageException
-     */
-    public static void fireMessageSyncChecked(final String messageId, final Map<String, Object> args, final Callback callback) throws NoSubscriptionMessageException {
-        if (subscriptionMap.containsKey(messageId)) {
-            fireMessageSync(messageId, args, callback);
-        } else {
-            throw new NoSubscriptionMessageException("Message " + messageId + "has no subscriptions on this bus!");
-        }
-    }
-    
-    /**
-     * Fire messageto the bus with additional checking and arg helper. If there is no subscribers, 
-     * then {@code NoSubscriptionMessageException} will be throwned. Sync method.
-     * @param messageId id of message;
-     * @param argHelper message arguments helper;
-     * @param callback post-execution callback;
-     * @throws tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException
-     * @see NoSubscriptionMessageException
-     */
-    public static void fireMessageSyncCheckedHelped(final String messageId, final ArgHelper argHelper, final Callback callback) throws NoSubscriptionMessageException {
-        fireMessageSyncChecked(messageId, argHelper.getArgs(), callback);
-    }
-    
-    /**
-     * Fire message to the bus with additional check. ASYNC METHOD!
-     * @param messageId id of message;
-     * @param args message arguments;
-     * @param callback post-execution callback;
-     */
-    public static void fireMessageChecked(final String messageId, final Map<String, Object> args, final Callback callback) {
-        LOGGER.info("start async thread for message " + messageId);
-        threadService.submit(() -> {
-            try {
-                fireMessageSyncChecked(messageId, args, callback);
-            } catch (NoSubscriptionMessageException nox) {
-                LOGGER.error("Can't process " + messageId + ": no subscriptions!");
-                if (callback != null) {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put(GlobalIds.GLOBAL_EXCEPTION, nox);
-                    callback.callback(result);
-                }
+    private static Subscription getSubscription(final String messageId) {
+        for (Subscription subscription: subscriptions) {
+            if (Objects.equals(subscription.getId(), messageId)) {
+                return subscription;
             }
-        });
-    }
-    
-    /**
-     * Fire message to the bus with additional check with arg helper. ASYNC METHOD!
-     * @param messageId id of message;
-     * @param argHelper message arguments helper;
-     * @param callback post-execution callback;
-     */
-    public static void fireMessageCheckedHelper(final String messageId, final ArgHelper argHelper, final Callback callback) {
-        fireMessageChecked(messageId, argHelper.getArgs(), callback);
+        }
+        return null;
     }
     
     /**
