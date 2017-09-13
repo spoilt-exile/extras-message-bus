@@ -27,7 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageBus;
-import tk.freaxsoftware.extras.bus.ArgBuilder;
+import tk.freaxsoftware.extras.bus.HeaderBuilder;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
@@ -48,7 +49,7 @@ public class MessageBusTest {
     
     private static final String RES_MULTIPLIE = "MessageTest.Arg.RES";
     
-    private static final String EXCEPTION_MESSAGE = "Test exception";
+    private static final String EXCEPTION_CLASS = "java.lang.Exception";
     
     private static final String ROUND_ROBIN_MESSAGE = "Round.Robin.Test";
     
@@ -57,21 +58,21 @@ public class MessageBusTest {
     
     @Before
     public void setUp() throws ReceiverRegistrationException {
-        MessageBus.addSubscription(EMPTY_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
+        MessageBus.addSubscription(EMPTY_MESSAGE, (MessageHolder holder) -> {
             logger.debug("empty message received, throwing exception");
-            throw new Exception(EXCEPTION_MESSAGE);
+            throw new Exception(EXCEPTION_CLASS);
         });
-        MessageBus.addSubscription(EMPTY_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
-            assertEquals(messageId, EMPTY_MESSAGE);
-            logger.warn(messageId + " received!");
+        MessageBus.addSubscription(EMPTY_MESSAGE, (MessageHolder holder) -> {
+            assertEquals(holder.getMessageId(), EMPTY_MESSAGE);
+            logger.warn(holder.getMessageId() + " received!");
         });
-        MessageBus.addSubscription(MULTIPLIE_MESSAGE, (String messageId, Map<String, Object> arguments, Map<String, Object> result) -> {
-            assertEquals(messageId, MULTIPLIE_MESSAGE);
-            logger.warn(messageId + " received!");
-            Integer digit1 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT1);
-            Integer digit2 = (Integer) arguments.get(ARG_MULTIPLIE_DIGIT2);
+        MessageBus.addSubscription(MULTIPLIE_MESSAGE, (MessageHolder holder) -> {
+            assertEquals(holder.getMessageId(), MULTIPLIE_MESSAGE);
+            logger.warn(holder.getMessageId() + " received!");
+            Integer digit1 = Integer.parseInt((String) holder.getHeaders().get(ARG_MULTIPLIE_DIGIT1));
+            Integer digit2 = Integer.parseInt((String) holder.getHeaders().get(ARG_MULTIPLIE_DIGIT2));
             Integer multiplied = digit1 * digit2;
-            result.put(RES_MULTIPLIE, multiplied);
+            holder.getResponse().setContent(multiplied);
         });
         MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(1));
         MessageBus.addSubscription(ROUND_ROBIN_MESSAGE, new RoundRobinReceiver(2));
@@ -88,18 +89,17 @@ public class MessageBusTest {
     @Test
     public void emptyMessageException() {
         MessageBus.fire(EMPTY_MESSAGE, null, MessageOptions.Builder.newInstance().callback((result) -> {
-            assertTrue(result.containsKey(GlobalIds.GLOBAL_EXCEPTION));
-            Exception last = (Exception) result.get(GlobalIds.GLOBAL_EXCEPTION);
-            assertEquals(last.getMessage(), EXCEPTION_MESSAGE);
+            assertTrue(result.getHeaders().containsKey(GlobalIds.GLOBAL_EXCEPTION));
+            String last = (String) result.getHeaders().get(GlobalIds.GLOBAL_EXCEPTION);
+            assertEquals(last, EXCEPTION_CLASS);
         }).build());
     }
     
     @Test
     public void multiplieMessage() {
-        MessageBus.fire(MULTIPLIE_MESSAGE, ArgBuilder.newInstance().putArg(ARG_MULTIPLIE_DIGIT1, 2).putArg(ARG_MULTIPLIE_DIGIT2, 2).build(), MessageOptions.Builder.newInstance().callback((result) -> {
-            logger.warn("result of multiplication; " + result.get(RES_MULTIPLIE));
-            assertTrue(result.containsKey(RES_MULTIPLIE));
-            Integer resultInt = (Integer) result.get(RES_MULTIPLIE);
+        MessageBus.fire(MULTIPLIE_MESSAGE, HeaderBuilder.newInstance().putArg(ARG_MULTIPLIE_DIGIT1, "2").putArg(ARG_MULTIPLIE_DIGIT2, "2").build(), MessageOptions.Builder.newInstance().callback((result) -> {
+            assertNotNull(result.getContent());
+            Integer resultInt = (Integer) result.getContent();
             assertEquals(resultInt, new Integer(4));
         }).build());
     }
@@ -108,7 +108,7 @@ public class MessageBusTest {
     public void testRoundRobin() {
         for (int outer = 0; outer < 3; outer++) {
             for (int inner = 1; inner < 6; inner++) {
-                MessageBus.fire(ROUND_ROBIN_MESSAGE, ArgBuilder.newInstance().putArg(RoundRobinReceiver.ROUND_ROBIN_KEY, inner).build());
+                MessageBus.fire(ROUND_ROBIN_MESSAGE, inner);
             }
         }
     }

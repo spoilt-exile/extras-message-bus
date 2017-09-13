@@ -19,10 +19,10 @@
 
 package tk.freaxsoftware.extras.bus.test;
 
-import java.util.Map;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
 
 /**
@@ -42,9 +42,9 @@ public class RoundRobinReceiver implements Receiver {
     }
 
     @Override
-    public void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception {
-        logger.info(String.format("Receiver #%d gets message with index %d", index, arguments.get(ROUND_ROBIN_KEY)));
-        Assert.assertEquals(index, arguments.get(ROUND_ROBIN_KEY));
+    public void receive(MessageHolder holder) throws Exception {
+        logger.info(String.format("Receiver #%d gets message with index %d", index, holder.getContent()));
+        Assert.assertEquals(index, holder.getContent());
     }
     
 }

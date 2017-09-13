@@ -23,24 +23,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Message argument helper;
+ * Message header helper;
  * @author Stanislav Nepochatov
  */
-public class ArgBuilder {
+public class HeaderBuilder {
     
-    private final Map<String, Object> args = new HashMap<>();
+    private final Map<String, String> args = new HashMap<>();
     
-    public ArgBuilder putArg(String argKey, Object argValue) {
+    public HeaderBuilder putArg(String argKey, String argValue) {
         this.args.put(argKey, argValue);
         return this;
     }
     
-    public Map<String, Object> build() {
+    public Map<String, String> build() {
         return this.args;
     }
     
-    public static final ArgBuilder newInstance() {
-        return new ArgBuilder();
+    public static final HeaderBuilder newInstance() {
+        return new HeaderBuilder();
     }
     
 }

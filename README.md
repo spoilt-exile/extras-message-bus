@@ -1,12 +1,14 @@
 MessageBus
 ============
 
-Basic message bus service. Supports subscription for certain type of messages, delivering arguments and returning results for sender. Supports sync and async message firing. Supports very basic ignition.
+Basic message bus service. Suport sync and async message delivery. Point-to-point 
+messaging with round robin and broadcasting. Message callbacks to delivery results 
+of message processing (for point-to-point only). 
 
-**Current version:** *3.0*
+**Current version:** *4.0*
 
 ## Copyright and license terms
 
 Library distributed under terms of GNU LGPLv3 license.
 
-**© Nebula Software 2015**
+**© Freax Software 2015-2017**

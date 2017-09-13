@@ -111,20 +111,34 @@ public final class MessageBus {
     
     /**
      * Fire message to the bus.
+     * @param <T> type of content;
      * @param messageId id of message;
-     * @param args message arguments;
+     * @param content message content;
      */
-    public static void fire(final String messageId, final Map<String, Object> args) {
-        fire(messageId, args, MessageOptions.defaultOptions());
+    public static <T> void fire(final String messageId, final T content) {
+        fire(messageId, content, null, MessageOptions.defaultOptions());
     }
     
     /**
      * Fire message to the bus.
+     * @param <T> type of content;
      * @param messageId id of message;
-     * @param args message arguments;
+     * @param headers message headers;
      * @param options options for message processing;
      */
-    public static void fire(final String messageId, final Map<String, Object> args, final MessageOptions options) {
+    public static <T> void fire(final String messageId, final Map<String, String> headers, final MessageOptions options) {
+        fire(messageId, null, headers, options);
+    }
+    
+    /**
+     * Fire message to the bus.
+     * @param <T> type of content;
+     * @param messageId id of message;
+     * @param content message content;
+     * @param headers message headers;
+     * @param options options for message processing;
+     */
+    public static <T> void fire(final String messageId, final T content, final Map<String, String> headers, final MessageOptions options) {
         if (options == null) {
             throw new IllegalArgumentException("Message options can't be null!");
         }
@@ -132,26 +146,33 @@ public final class MessageBus {
         Subscription subscription = getSubscription(messageId);
         if (subscription != null) {
             BlockExecutor.getExecutor().execute(() -> {
-                Map<String, Object> result = new HashMap<>();
                 if (options.isBroadcast()) {
+                    MessageHolder<T> holder = new MessageHolder<>(messageId, options, content);
+                    if (headers != null) {
+                        holder.setHeaders(headers);
+                    }
                     for (Receiver receiver: subscription.getReceivers()) {
                         try {
-                            receiver.receive(messageId, args, result);
+                            receiver.receive(holder);
                         } catch (Exception ex) {
                             LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                            result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
+                            holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_EXCEPTION, ex.getClass().getCanonicalName());
                         }
                     }
                 } else {
+                    MessageHolder<T> holder = new MessageHolder<>(messageId, options, content);
+                    if (headers != null) {
+                        holder.setHeaders(headers);
+                    }
                     Receiver singleReceiver = subscription.getRoundRobinIterator().next();
                     try {
-                        singleReceiver.receive(messageId, args, result);
+                        singleReceiver.receive(holder);
                     } catch (Exception ex) {
                         LOGGER.error("Receiver " + singleReceiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                        result.put(GlobalIds.GLOBAL_EXCEPTION, ex);
+                        holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_EXCEPTION, ex.getClass().getCanonicalName());
                     }
                     if (options.getCallback() != null) {
-                        options.getCallback().callback(result);
+                        options.getCallback().callback(holder.getResponse());
                     }
                 }
             }, options.isAsync());

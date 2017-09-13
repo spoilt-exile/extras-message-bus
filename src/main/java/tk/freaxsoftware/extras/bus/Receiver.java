@@ -19,21 +19,18 @@
 
 package tk.freaxsoftware.extras.bus;
 
-import java.util.Map;
-
 /**
  * Message receiver interface.
  * @author Stanislav Nepochatov
+ * @param <T>
  */
-public interface Receiver {
+public interface Receiver<T> {
     
     /**
      * Receive message with arguments, process it and place results.
-     * @param messageId message id string;
-     * @param arguments arguments passed with message dispatch;
-     * @param result message processing result which may be returned to peer;
+     * @param message message holder instance;
      * @throws Exception receiver may throws any exception;
      */
-    void receive(String messageId, Map<String, Object> arguments, Map<String, Object> result) throws Exception;
+    void receive(MessageHolder<T> message) throws Exception;
     
 }
