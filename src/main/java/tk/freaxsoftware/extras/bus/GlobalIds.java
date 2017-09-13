@@ -25,9 +25,19 @@ package tk.freaxsoftware.extras.bus;
 public class GlobalIds {
     
     /**
-     * Exception holder in result. May be overrided by last executed receiver.
+     * Global notification on new subscriptions.
      */
-    public static final String GLOBAL_EXCEPTION = "Global.Exception";
+    public static final String GLOBAL_SUBSCRIPTION = "Global.Subscription";
+    
+    /**
+     * Global header for new subsciption id.
+     */
+    public static final String GLOBAL_HEADER_SUBSCRIPTION_ID = "Global.Headers.SubscriptionId";
+    
+    /**
+     * Global header for exception class. May be overrided by last executed receiver.
+     */
+    public static final String GLOBAL_HEADER_EXCEPTION = "Global.Headers.Exception";
     
     /**
      * Id for result of simple messaging. Result is not an error.

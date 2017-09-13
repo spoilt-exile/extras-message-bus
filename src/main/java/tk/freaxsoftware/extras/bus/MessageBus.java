@@ -60,6 +60,7 @@ public final class MessageBus {
         } else {
             subscription.addReceiver(receiver);
         }
+        fire(GlobalIds.GLOBAL_SUBSCRIPTION, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
     }
     
     /**
@@ -156,7 +157,7 @@ public final class MessageBus {
                             receiver.receive(holder);
                         } catch (Exception ex) {
                             LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                            holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_EXCEPTION, ex.getClass().getCanonicalName());
+                            holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_HEADER_EXCEPTION, ex.getClass().getCanonicalName());
                         }
                     }
                 } else {
@@ -169,7 +170,7 @@ public final class MessageBus {
                         singleReceiver.receive(holder);
                     } catch (Exception ex) {
                         LOGGER.error("Receiver " + singleReceiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                        holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_EXCEPTION, ex.getClass().getCanonicalName());
+                        holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_HEADER_EXCEPTION, ex.getClass().getCanonicalName());
                     }
                     if (options.getCallback() != null) {
                         options.getCallback().callback(holder.getResponse());
@@ -200,6 +201,6 @@ public final class MessageBus {
      * @return true - no errors founded, false - there is exception stored in map or something else;
      */
     public static Boolean isSuccessful(Map<String, Object> result) {
-        return !result.containsKey(GlobalIds.GLOBAL_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
+        return !result.containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
     }
 }

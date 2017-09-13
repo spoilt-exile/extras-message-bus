@@ -18,7 +18,6 @@
  */
 package tk.freaxsoftware.extras.bus.test;
 
-import java.util.Map;
 import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -89,8 +88,8 @@ public class MessageBusTest {
     @Test
     public void emptyMessageException() {
         MessageBus.fire(EMPTY_MESSAGE, null, MessageOptions.Builder.newInstance().callback((result) -> {
-            assertTrue(result.getHeaders().containsKey(GlobalIds.GLOBAL_EXCEPTION));
-            String last = (String) result.getHeaders().get(GlobalIds.GLOBAL_EXCEPTION);
+            assertTrue(result.getHeaders().containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION));
+            String last = (String) result.getHeaders().get(GlobalIds.GLOBAL_HEADER_EXCEPTION);
             assertEquals(last, EXCEPTION_CLASS);
         }).build());
     }
