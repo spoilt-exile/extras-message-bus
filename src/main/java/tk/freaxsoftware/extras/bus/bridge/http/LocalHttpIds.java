@@ -16,31 +16,39 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package tk.freaxsoftware.extras.bus.config.http;
+
+package tk.freaxsoftware.extras.bus.bridge.http;
 
 /**
- * Http bridge server config.
+ * Local id class related to http bridge.
  * @author Stanislav Nepochatov
  */
-public class ServerConfig {
+public class LocalHttpIds {
     
-    private Integer httpPort;
+    /**
+     * Local HTTP header for bridge.
+     */
+    protected static final String LOCAL_HTTP_HEADER_CALLBACK = "Local.Http.Header.Mode";
     
-    private Integer sparkThreadPoolMaxSize;
-
-    public Integer getHttpPort() {
-        return httpPort;
+    /**
+     * Enum for HTTP bridging mode.
+     */
+    public static enum Mode {
+        
+        /**
+         * Async, single, no callback.
+         */
+        SIMPLE,
+        
+        /**
+         * Sync, single with callback.
+         */
+        CALLBACK,
+        
+        /**
+         * Async, broadcast without callback.
+         */
+        BROADCAST;
     }
-
-    public void setHttpPort(Integer httpPort) {
-        this.httpPort = httpPort;
-    }
-
-    public Integer getSparkThreadPoolMaxSize() {
-        return sparkThreadPoolMaxSize;
-    }
-
-    public void setSparkThreadPoolMaxSize(Integer sparkThreadPoolMaxSize) {
-        this.sparkThreadPoolMaxSize = sparkThreadPoolMaxSize;
-    }
+    
 }
