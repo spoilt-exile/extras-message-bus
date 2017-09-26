@@ -24,8 +24,18 @@ package tk.freaxsoftware.extras.bus.config.pool;
  * @author Stanislav Nepochatov
  */
 public enum PoolType {
-    FIXED_POOL,
-    FORK_JOIN_POOL,
-    SINLGE_POOL,
-    CACHED_POOL;
+    FIXED_POOL(FixedThreadPoolConfig.class),
+    FORK_JOIN_POOL(ForkJoinThreadPoolConfig.class),
+    SINLGE_POOL(SingleThreadPoolConfig.class),
+    CACHED_POOL(CachedThreadPoolConfig.class);
+    
+    private Class poolClass;
+    
+    private PoolType(Class poolClass) {
+        this.poolClass = poolClass;
+    }
+
+    public Class getPoolClass() {
+        return poolClass;
+    }
 }

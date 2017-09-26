@@ -30,17 +30,21 @@ import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
  */
 public class MessageClientSender extends AbstractHttpSender implements Receiver {
     
-    private ClientConfig config;
+    private final ClientConfig config;
     
-    private ServerConfig serverConfig;
+    private final ServerConfig serverConfig;
     
-    public void init(ServerConfig serverConfig, ClientConfig config) {
+    public MessageClientSender(ServerConfig serverConfig, ClientConfig config) {
         this.serverConfig = serverConfig;
         this.config = config;
     }
 
     @Override
     public void receive(MessageHolder message) throws Exception {
+        // Ignore itself.
+        if (message.getContent() == this) {
+            return;
+        }
         HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
         setupEntry(message, entry);
         HttpMessageEntry response = sendEntry(config.getAddress(), config.getPort(), entry);

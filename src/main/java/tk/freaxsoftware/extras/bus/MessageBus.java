@@ -19,7 +19,6 @@
 
 package tk.freaxsoftware.extras.bus;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,13 +40,15 @@ public final class MessageBus {
      */
     private static final List<Subscription> subscriptions = new CopyOnWriteArrayList<>();
     
+    private static final MessageBusInit init = new MessageBusInit();
+    
     /**
      * Subscribe receiver for message with following id.
      * @param id message id string;
      * @param receiver message receiver;
-     * @throws tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException
      */
-    public static void addSubscription(final String id, final Receiver receiver) throws ReceiverRegistrationException {
+    public static void addSubscription(final String id, final Receiver receiver) {
+        init();
         if (id == null || receiver == null) {
             throw new ReceiverRegistrationException("Can't processed registration with null references!");
         }
@@ -67,9 +68,8 @@ public final class MessageBus {
      * Subscribe receiver for multiplie messages ids.
      * @param ids array of ids;
      * @param receiver message receiver;
-     * @throws tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException
      */
-    public static void addSubscriptions(final String[] ids, final Receiver receiver) throws ReceiverRegistrationException {
+    public static void addSubscriptions(final String[] ids, final Receiver receiver) {
         for (String id: ids) {
             addSubscription(id, receiver);
         }
@@ -82,6 +82,7 @@ public final class MessageBus {
      */
     public static void removeSubscription(final String id, final Receiver receiver) {
         LOGGER.info("removing subscription for " + id);
+        init();
         Subscription subscription = getSubscription(id);
         if (subscription != null) {
             subscription.getReceivers().remove(receiver);
@@ -107,6 +108,7 @@ public final class MessageBus {
      * Clear all subscriptions. This action reset whole message bus. Use with care.
      */
     public static void clearBus() {
+        init();
         LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
         subscriptions.clear();
     }
@@ -141,13 +143,14 @@ public final class MessageBus {
      * @param options options for message processing;
      */
     public static <T> void fire(final String messageId, final T content, final Map<String, String> headers, final MessageOptions options) {
+        init();
         if (options == null) {
             throw new IllegalArgumentException("Message options can't be null!");
         }
         LOGGER.info(messageId + " message fired to bus");
         Subscription subscription = getSubscription(messageId);
         if (subscription != null) {
-            BlockExecutor.getExecutor().execute(() -> {
+            init.getExecutor().execute(() -> {
                 if (options.isBroadcast()) {
                     MessageHolder<T> holder = new MessageHolder<>(messageId, options, content);
                     if (headers != null) {
@@ -203,5 +206,9 @@ public final class MessageBus {
      */
     public static Boolean isSuccessful(Map<String, Object> result) {
         return !result.containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
+    }
+    
+    private static void init() {
+        init.ensureInit();
     }
 }

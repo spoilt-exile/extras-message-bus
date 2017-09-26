@@ -23,7 +23,7 @@ package tk.freaxsoftware.extras.bus.exceptions;
  * of message id or receiver instance.
  * @author Stanislav Nepochatov
  */
-public class ReceiverRegistrationException extends Exception {
+public class ReceiverRegistrationException extends RuntimeException {
 
     public ReceiverRegistrationException(String message) {
         super(message);

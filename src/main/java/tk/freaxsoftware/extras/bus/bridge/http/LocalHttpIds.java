@@ -27,9 +27,9 @@ public class LocalHttpIds {
     
     protected static final String LOCAL_HTTP_URL = "/broker/message";
     
-    protected static final String LOCAL_HTTP_MESSAGE_SUBSCRIBE = "Local.Http.Message.Subscribe";
+    public static final String LOCAL_HTTP_MESSAGE_SUBSCRIBE = "Local.Http.Message.Subscribe";
     
-    protected static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
+    public static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
     
     /**
      * Local HTTP header for bridge mode.

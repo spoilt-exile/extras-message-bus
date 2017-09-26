@@ -20,7 +20,6 @@
 package tk.freaxsoftware.extras.bus;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Block executor allows to execute block of codes in sync and async manner.
@@ -29,19 +28,13 @@ import java.util.concurrent.Executors;
 public class BlockExecutor {
     
     /**
-     * Singletone instance.
-     */
-    private static BlockExecutor executor;
-    
-    /**
      * Thread pool executor.
      */
-    private final ExecutorService threadService = Executors.newFixedThreadPool(4);
-    
-    /**
-     * Private constructor.
-     */
-    private BlockExecutor() {}
+    private final ExecutorService threadService;
+
+    public BlockExecutor(ExecutorService threadService) {
+        this.threadService = threadService;
+    }
     
     /**
      * Execute block of code in manner specified by argument.
@@ -70,17 +63,6 @@ public class BlockExecutor {
      */
     public void executeAsync(CodeBlock block) {
         threadService.submit(() -> block.exec());
-    }
-    
-    /**
-     * Get executor.
-     * @return executor instnace;
-     */
-    public static BlockExecutor getExecutor() {
-        if (executor == null) {
-            executor = new BlockExecutor();
-        }
-        return executor;
     }
     
 }

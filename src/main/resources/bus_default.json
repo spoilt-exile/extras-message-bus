@@ -1,0 +1,6 @@
+{
+    "threadPoolConfig": {
+        "type": "FIXED_POOL",
+        "threadCount": 8
+    }
+}
