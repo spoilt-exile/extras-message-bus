@@ -49,13 +49,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     }
     
     private void setupEntry(MessageHolder message, HttpMessageEntry entry) {
-        if (message.getOptions().isBroadcast()) {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.BROADCAST);
-        } else if (message.getOptions().getCallback() != null) {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.CALLBACK);
-        } else {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE);
-        }
+        setupMessageMode(message, entry);
         entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT, serverConfig.getHttpPort().toString());
         if (entry.getMessageId().equals(GlobalIds.GLOBAL_SUBSCRIBE)) {
             entry.setMessageId(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE);

@@ -33,6 +33,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import tk.freaxsoftware.extras.bus.GlobalIds;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 
 /**
  * Abstract HTTP sender implements single method for sending by http.
@@ -66,4 +68,13 @@ public class AbstractHttpSender {
         return null;
     }
     
+    protected void setupMessageMode(MessageHolder message, HttpMessageEntry entry) {
+        if (message.getOptions().isBroadcast()) {
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.BROADCAST);
+        } else if (message.getOptions().getCallback() != null) {
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.CALLBACK);
+        } else {
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE);
+        }
+    }
 }
