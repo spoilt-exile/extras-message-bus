@@ -34,9 +34,14 @@ public class HttpMessageEntryFactory {
     public HttpMessageEntry deserialize(JsonObject object) throws ClassNotFoundException {
         String messageId = object.get("messageId").getAsString();
         Map<String, String> headers = gson.fromJson(object.get("headers"), new TypeToken<Map<String, String>>(){}.getType());
-        Class fullType = Class.forName(object.get("fullTypeName").getAsString());
-        Object content = gson.fromJson(object.get("content"), fullType);
-        HttpMessageEntry entry = new HttpMessageEntry(messageId, headers, content);
+        HttpMessageEntry entry;
+        if (object.has("fullTypeName")) {
+            Class fullType = Class.forName(object.get("fullTypeName").getAsString());
+            Object content = gson.fromJson(object.get("content"), fullType);
+            entry = new HttpMessageEntry(messageId, headers, content);
+        } else {
+            entry = new HttpMessageEntry(messageId, headers, null);
+        }
         return entry;
     }
     
