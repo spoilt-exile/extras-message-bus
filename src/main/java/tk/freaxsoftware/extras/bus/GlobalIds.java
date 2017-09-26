@@ -27,7 +27,12 @@ public class GlobalIds {
     /**
      * Global notification on new subscriptions.
      */
-    public static final String GLOBAL_SUBSCRIPTION = "Global.Subscription";
+    public static final String GLOBAL_SUBSCRIBE = "Global.Subscribe";
+    
+    /**
+     * Global notification on subscriptions cancelation.
+     */
+    public static final String GLOBAL_UNSUBSCRIBE = "Global.Unsubscribe";
     
     /**
      * Global header for new subsciption id.

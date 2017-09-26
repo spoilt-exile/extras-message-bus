@@ -24,13 +24,23 @@ package tk.freaxsoftware.extras.bus.config.http;
  */
 public class ClientConfig {
     
-    private String url;
+    private String address;
+    
+    private Integer port;
 
-    public String getUrl() {
-        return url;
+    public String getAddress() {
+        return address;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
     }
 }

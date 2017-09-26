@@ -42,14 +42,15 @@ public class MessageServer {
         threadPool(config.getSparkThreadPoolMaxSize());
         port(config.getHttpPort());
         
-        post("/broker/message", "application/json", (Request req, Response res) -> {
+        post(LocalHttpIds.LOCAL_HTTP_URL, "application/json", (Request req, Response res) -> {
             JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
             HttpMessageEntry entry = messageFactory.deserialize(bodyJson);
-            LocalHttpIds.Mode mode = LocalHttpIds.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpIds.LOCAL_HTTP_HEADER_CALLBACK, LocalHttpIds.Mode.SIMPLE.name()));
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP, req.ip());
+            LocalHttpIds.Mode mode = LocalHttpIds.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name()));
             HttpMessageEntry response = new HttpMessageEntry();
             switch (mode) {
                 case BROADCAST:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().broadcast().build());
+                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().broadcast().build());
                     break;
                 case CALLBACK:
                     MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().callback((messageResponse) -> {

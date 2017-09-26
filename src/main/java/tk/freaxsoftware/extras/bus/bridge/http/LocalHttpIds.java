@@ -25,10 +25,26 @@ package tk.freaxsoftware.extras.bus.bridge.http;
  */
 public class LocalHttpIds {
     
+    protected static final String LOCAL_HTTP_URL = "/broker/message";
+    
+    protected static final String LOCAL_HTTP_MESSAGE_SUBSCRIBE = "Local.Http.Message.Subscribe";
+    
+    protected static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
+    
     /**
-     * Local HTTP header for bridge.
+     * Local HTTP header for bridge mode.
      */
-    protected static final String LOCAL_HTTP_HEADER_CALLBACK = "Local.Http.Header.Mode";
+    protected static final String LOCAL_HTTP_HEADER_MODE = "Local.Http.Header.Mode";
+    
+    /**
+     * Local HTTP header for node IP address.
+     */
+    protected static final String LOCAL_HTTP_HEADER_NODE_IP = "Local.Http.Header.NodeIP";
+    
+    /**
+     * Local HTTP header for node port number.
+     */
+    protected static final String LOCAL_HTTP_HEADER_NODE_PORT = "Local.Http.Header.NodePort";
     
     /**
      * Enum for HTTP bridging mode.

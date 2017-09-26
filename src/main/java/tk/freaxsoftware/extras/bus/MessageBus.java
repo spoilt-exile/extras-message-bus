@@ -60,7 +60,7 @@ public final class MessageBus {
         } else {
             subscription.addReceiver(receiver);
         }
-        fire(GlobalIds.GLOBAL_SUBSCRIPTION, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
+        fire(GlobalIds.GLOBAL_SUBSCRIBE, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
     }
     
     /**
@@ -89,6 +89,7 @@ public final class MessageBus {
                 subscriptions.remove(subscription);
             }
         }
+        fire(GlobalIds.GLOBAL_UNSUBSCRIBE, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
     }
     
     /**
