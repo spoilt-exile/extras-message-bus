@@ -67,7 +67,7 @@ public class MessageBusInit {
             } else {
                 RemoteSubscriptionReceiver remoteSubscriber = new RemoteSubscriptionReceiver();
                 MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE, remoteSubscriber);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE, remoteSubscriber);
             }
         }
         
