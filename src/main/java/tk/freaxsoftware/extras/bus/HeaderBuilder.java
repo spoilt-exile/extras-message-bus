@@ -30,15 +30,29 @@ public class HeaderBuilder {
     
     private final Map<String, String> args = new HashMap<>();
     
+    /**
+     * Add pair of key and value to header builder.
+     * @param argKey key;
+     * @param argValue value;
+     * @return builder instance;
+     */
     public HeaderBuilder putArg(String argKey, String argValue) {
         this.args.put(argKey, argValue);
         return this;
     }
     
+    /**
+     * Get headers from builder.
+     * @return map of headers;
+     */
     public Map<String, String> build() {
         return this.args;
     }
     
+    /**
+     * Get new builder.
+     * @return builder;
+     */
     public static final HeaderBuilder newInstance() {
         return new HeaderBuilder();
     }

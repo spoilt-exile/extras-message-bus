@@ -27,10 +27,16 @@ import java.util.Map;
  * Http message entries factory. Used for deserialization.
  * @author Stanislav Nepochatov
  */
-public class HttpMessageEntryFactory {
+public class HttpMessageEntryUtil {
     
     private final Gson gson = new Gson();
     
+    /**
+     * Deseralize message entry from the json object.
+     * @param object json object;
+     * @return parsed http message entry;
+     * @throws ClassNotFoundException 
+     */
     public HttpMessageEntry deserialize(JsonObject object) throws ClassNotFoundException {
         String messageId = object.get("messageId").getAsString();
         Map<String, String> headers = gson.fromJson(object.get("headers"), new TypeToken<Map<String, String>>(){}.getType());

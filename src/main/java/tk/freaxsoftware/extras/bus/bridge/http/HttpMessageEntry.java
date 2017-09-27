@@ -28,14 +28,29 @@ import java.util.Map;
  */
 public class HttpMessageEntry<T> {
     
+    /**
+     * Message id: destination.
+     */
     private String messageId;
     
+    /**
+     * Headers of the message.
+     */
     private Map<String, String> headers;
     
+    /**
+     * Full name of the content class. If null content will be ignored.
+     */
     private String fullTypeName;
     
+    /**
+     * Simple typename of the content class.
+     */
     private String typeName;
     
+    /**
+     * Content of the message.
+     */
     private T content;
     
     public HttpMessageEntry() {}

@@ -41,10 +41,32 @@ public class MessageBusInit {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageBus.class);
     
+    /**
+     * Block executor instance.
+     */
     private BlockExecutor executor;
     
+    /**
+     * Message bus config instance.
+     */
     private volatile MessageBusConfig config;
     
+    /**
+     * Inits message bus config and additional components. Trying to read 
+     * default config {@code bus_default.json} in main resources folder at first. 
+     * Also it reads {@code bus.json} standard configuration file in resources. 
+     * Standard config has priority over defaults.<br/>
+     * <br/>
+     * List of routines:
+     * <ol>
+     * <li>Read default config;</li>
+     * <li>Read standard config;</li>
+     * <li>Choose config file;</li>
+     * <li>Creating block executor instance;</li>
+     * <li>Establish HTTP server node (if configured);</li>
+     * <li>Establish HTTP client sender (if server and client both configured) or creating instance of {@code RemoteSubscriptionReceiver};</li>
+     * </ol>
+     */
     protected void ensureInit() {
         if (config != null) {
             return;

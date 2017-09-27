@@ -29,8 +29,14 @@ import java.util.Map;
  */
 public class ResponseHolder<T> {
     
+    /**
+     * Headers of the response.
+     */
     private Map<String, String> headers;
     
+    /**
+     * Response content.
+     */
     private T content;
 
     public ResponseHolder() {

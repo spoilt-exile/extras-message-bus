@@ -30,10 +30,21 @@ import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
  */
 public class MessageClientSender extends AbstractHttpSender implements Receiver {
     
+    /**
+     * Client config instance.
+     */
     private final ClientConfig config;
     
+    /**
+     * Server config instance.
+     */
     private final ServerConfig serverConfig;
     
+    /**
+     * Default constructor.
+     * @param serverConfig instance of server config;
+     * @param config instance of client config;
+     */
     public MessageClientSender(ServerConfig serverConfig, ClientConfig config) {
         this.serverConfig = serverConfig;
         this.config = config;
@@ -48,18 +59,36 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
         setupEntry(message, entry);
         HttpMessageEntry response = sendEntry(config.getAddress(), config.getPort(), entry);
-        message.getResponse().setContent(response.getContent());
-        message.getResponse().setHeaders(response.getHeaders());
+        if (response != null) {
+            message.getResponse().setHeaders(response.getHeaders());
+            message.getResponse().setContent(response.getContent());
+        }
     }
     
+    /**
+     * Setup message entry for sending.
+     * @param message message holder;
+     * @param entry message entry for sending;
+     */
     private void setupEntry(MessageHolder message, HttpMessageEntry entry) {
         setupMessageMode(message, entry);
-        entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT, serverConfig.getHttpPort().toString());
+        //Add header with this node server port for back comminication.
+        entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT, serverConfig.isNested() ? String.valueOf(spark.Spark.port()) : serverConfig.getHttpPort().toString());
+        //Override if subscription message.
         if (entry.getMessageId().equals(GlobalIds.GLOBAL_SUBSCRIBE)) {
             entry.setMessageId(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE);
+            entry.setContent(null);
+            entry.setFullTypeName(null);
+            entry.setTypeName(null);
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name());
         }
+        //Override if unsubscription message.
         if (entry.getMessageId().equals(GlobalIds.GLOBAL_UNSUBSCRIBE)) {
             entry.setMessageId(LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE);
+            entry.setContent(null);
+            entry.setFullTypeName(null);
+            entry.setTypeName(null);
+            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name());
         }
     }
 }

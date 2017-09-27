@@ -37,6 +37,9 @@ public class Subscription {
      */
     private List<Receiver> receivers;
     
+    /**
+     * Instance of the round robin iterator.
+     */
     private RoundRobinIterator<Receiver> roundRobinIterator;
     
     /**

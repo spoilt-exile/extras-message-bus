@@ -34,17 +34,29 @@ import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
  */
 public class MessageServer {
     
-    private final HttpMessageEntryFactory messageFactory = new HttpMessageEntryFactory();
+    /**
+     * Message util.
+     */
+    private final HttpMessageEntryUtil messageUtil = new HttpMessageEntryUtil();
     
+    /**
+     * Gson instance.
+     */
     private final Gson gson = new Gson();
     
+    /**
+     * Deploy spark endpoint for message listening. It will config spark if config not nested.
+     * @param config server config;
+     */
     public void init(ServerConfig config) {
-        threadPool(config.getSparkThreadPoolMaxSize());
-        port(config.getHttpPort());
+        if (!config.isNested()) {
+            threadPool(config.getSparkThreadPoolMaxSize());
+            port(config.getHttpPort());
+        }
         
         post(LocalHttpIds.LOCAL_HTTP_URL, "application/json", (Request req, Response res) -> {
             JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
-            HttpMessageEntry entry = messageFactory.deserialize(bodyJson);
+            HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
             entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP, req.ip());
             LocalHttpIds.Mode mode = LocalHttpIds.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name()));
             HttpMessageEntry response = new HttpMessageEntry();

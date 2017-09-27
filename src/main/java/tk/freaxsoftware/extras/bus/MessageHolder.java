@@ -28,20 +28,44 @@ import java.util.Map;
  */
 public class MessageHolder<T> {
     
+    /**
+     * Message id: destinantion of the message.
+     */
     private String messageId;
     
+    /**
+     * Options provided to message bus during sending of the message.
+     */
     private MessageOptions options;
     
+    /**
+     * Headers of the message.
+     */
     private Map<String, String> headers;
     
+    /**
+     * Content of the message.
+     */
     private T content;
     
+    /**
+     * Response structure of the message.
+     */
     private ResponseHolder response;
     
+    /**
+     * Default constructor.
+     */
     public MessageHolder() {
         this.headers = new HashMap<>();
     }
 
+    /**
+     * Detail constructor.
+     * @param messageId id of the message;
+     * @param options options of the message;
+     * @param content content of the message;
+     */
     public MessageHolder(String messageId, MessageOptions options, T content) {
         this();
         this.messageId = messageId;

@@ -25,10 +25,19 @@ package tk.freaxsoftware.extras.bus.bridge.http;
  */
 public class LocalHttpIds {
     
+    /**
+     * Url for listening on messages.
+     */
     protected static final String LOCAL_HTTP_URL = "/broker/message";
     
+    /**
+     * Message notification of subscription over HTTP.
+     */
     public static final String LOCAL_HTTP_MESSAGE_SUBSCRIBE = "Local.Http.Message.Subscribe";
     
+    /**
+     * Message notification of unsubscription over HTTP.
+     */
     public static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
     
     /**

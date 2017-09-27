@@ -33,7 +33,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 
 /**
@@ -42,12 +41,32 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
  */
 public class AbstractHttpSender {
     
-    private final HttpMessageEntryFactory messageFactory = new HttpMessageEntryFactory();
+    /**
+     * Message util instance.
+     */
+    private final HttpMessageEntryUtil messageUtil = new HttpMessageEntryUtil();
     
+    /**
+     * Http client instance.
+     */
     private final HttpClient client = HttpClientBuilder.create().build();
     
+    /**
+     * Gson instance.
+     */
     private final Gson gson = new Gson();
     
+    /**
+     * Send message entry over HTTP to specified address and port.
+     * @param address ip address or host;
+     * @param port port number of HTTP server;
+     * @param entry message entry to deliver;
+     * @return response entry or null if there is no callback to return response;
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws URISyntaxException 
+     */
     protected HttpMessageEntry sendEntry(String address, Integer port, HttpMessageEntry entry) throws UnsupportedEncodingException, IOException, ClassNotFoundException, URISyntaxException {
         HttpPost request = new HttpPost(new URI("http", null, address, port, LocalHttpIds.LOCAL_HTTP_URL, null, null));
         request.setEntity(new StringEntity(gson.toJson(entry), ContentType.APPLICATION_JSON));
@@ -55,7 +74,7 @@ public class AbstractHttpSender {
         if (Objects.equals(LocalHttpIds.Mode.CALLBACK, entry.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_MODE))) {
             if (response.getEntity() != null) {
                 JsonObject bodyJson = new JsonParser().parse(new InputStreamReader(response.getEntity().getContent())).getAsJsonObject();
-                HttpMessageEntry responseEntry = messageFactory.deserialize(bodyJson);
+                HttpMessageEntry responseEntry = messageUtil.deserialize(bodyJson);
                 return responseEntry;
             } else {
                 throw new IllegalStateException(String.format("Node %s didn't return callback on message %s", address, entry.getMessageId()));
@@ -68,6 +87,11 @@ public class AbstractHttpSender {
         return null;
     }
     
+    /**
+     * Setup mode of the message bridging.
+     * @param message message holder;
+     * @param entry entry to send over HTTP;
+     */
     protected void setupMessageMode(MessageHolder message, HttpMessageEntry entry) {
         if (message.getOptions().isBroadcast()) {
             entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.BROADCAST);

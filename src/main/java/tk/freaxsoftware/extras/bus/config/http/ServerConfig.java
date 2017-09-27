@@ -24,9 +24,19 @@ package tk.freaxsoftware.extras.bus.config.http;
  */
 public class ServerConfig {
     
+    private Boolean nested;
+    
     private Integer httpPort;
     
     private Integer sparkThreadPoolMaxSize;
+
+    public Boolean isNested() {
+        return nested;
+    }
+
+    public void setNested(Boolean nested) {
+        this.nested = nested;
+    }
 
     public Integer getHttpPort() {
         return httpPort;

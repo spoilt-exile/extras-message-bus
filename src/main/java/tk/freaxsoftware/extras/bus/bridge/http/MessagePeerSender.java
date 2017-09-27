@@ -30,26 +30,52 @@ import tk.freaxsoftware.extras.bus.Receiver;
  */
 public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     
+    /**
+     * Node address.
+     */
     private final String address;
     
+    /**
+     * Node port.
+     */
     private final Integer port;
     
+    /**
+     * Node subscriptions.
+     */
     private final Set<String> subscriptions;
 
+    /**
+     * Default constructor.
+     * @param address ip address or host;
+     * @param port http port number;
+     */
     public MessagePeerSender(String address, Integer port) {
         this.address = address;
         this.port = port;
         this.subscriptions = new ConcurrentHashSet<>();
     }
     
+    /**
+     * Add subscription.
+     * @param id message id;
+     */
     public void addSubscription(String id) {
         this.subscriptions.add(id);
     }
     
+    /**
+     * Remove subscription.
+     * @param id message id;
+     */
     public void removeSubscription(String id) {
         this.subscriptions.remove(id);
     }
     
+    /**
+     * Return wheather or not current receiver is empty.
+     * @return true if no subscriptions inside / false if there is still some subscriptions;
+     */
     public Boolean isEmpty() {
         return this.subscriptions.isEmpty();
     }

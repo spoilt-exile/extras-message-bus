@@ -27,11 +27,15 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
 
 /**
- * Remote sender 
+ * Remote subscription manager. Listens for remove subscribe/unsubscribe messages and creates 
+ * {@code MessagePeerSender} for each node.
  * @author Stanislav Nepochatov
  */
 public class RemoteSubscriptionReceiver implements Receiver {
     
+    /**
+     * Remote subscribers map: node ip over senders.
+     */
     private final Map<String, MessagePeerSender> senderMap;
 
     public RemoteSubscriptionReceiver() {

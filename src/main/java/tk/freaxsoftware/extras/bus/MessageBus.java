@@ -40,6 +40,9 @@ public final class MessageBus {
      */
     private static final List<Subscription> subscriptions = new CopyOnWriteArrayList<>();
     
+    /**
+     * Message bus init util.
+     */
     private static final MessageBusInit init = new MessageBusInit();
     
     /**
@@ -208,7 +211,10 @@ public final class MessageBus {
         return !result.containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
     }
     
-    private static void init() {
+    /**
+     * Init message bus. Need to call just once.
+     */
+    public static void init() {
         init.ensureInit();
     }
 }
