@@ -39,7 +39,7 @@ import tk.freaxsoftware.extras.bus.config.pool.ThreadPoolConfig;
  */
 public class MessageBusInit {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBus.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageBusInit.class);
     
     /**
      * Block executor instance.

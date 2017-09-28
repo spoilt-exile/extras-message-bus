@@ -21,6 +21,8 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Set;
 import org.eclipse.jetty.util.ConcurrentHashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
 
@@ -29,6 +31,8 @@ import tk.freaxsoftware.extras.bus.Receiver;
  * @author Stanislav Nepochatov
  */
 public class MessagePeerSender extends AbstractHttpSender implements Receiver {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessagePeerSender.class);
     
     /**
      * Node address.
@@ -83,6 +87,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     @Override
     public void receive(MessageHolder message) throws Exception {
         if (subscriptions.contains(message.getMessageId())) {
+            LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getMessageId(), address, port));
             HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
             setupMessageMode(message, entry);
             HttpMessageEntry response = sendEntry(address, port, entry);

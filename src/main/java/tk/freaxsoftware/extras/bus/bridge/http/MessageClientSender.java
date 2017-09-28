@@ -18,6 +18,8 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
@@ -29,6 +31,8 @@ import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
  * @author Stanislav Nepochatov
  */
 public class MessageClientSender extends AbstractHttpSender implements Receiver {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageClientSender.class);
     
     /**
      * Client config instance.
@@ -48,6 +52,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     public MessageClientSender(ServerConfig serverConfig, ClientConfig config) {
         this.serverConfig = serverConfig;
         this.config = config;
+        LOGGER.info(String.format("Init connection to node %s on port %d", config.getAddress(), config.getPort()));
     }
 
     @Override
@@ -58,6 +63,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         }
         HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
         setupEntry(message, entry);
+        LOGGER.debug(String.format("Sending message %s to node %s on port %d", message.getMessageId(), config.getAddress(), config.getPort()));
         HttpMessageEntry response = sendEntry(config.getAddress(), config.getPort(), entry);
         if (response != null) {
             message.getResponse().setHeaders(response.getHeaders());

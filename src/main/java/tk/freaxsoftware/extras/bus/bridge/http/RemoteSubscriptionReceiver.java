@@ -21,6 +21,8 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
@@ -32,6 +34,8 @@ import tk.freaxsoftware.extras.bus.Receiver;
  * @author Stanislav Nepochatov
  */
 public class RemoteSubscriptionReceiver implements Receiver {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteSubscriptionReceiver.class);
     
     /**
      * Remote subscribers map: node ip over senders.
@@ -47,10 +51,12 @@ public class RemoteSubscriptionReceiver implements Receiver {
         String subscriptionId = (String) message.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID);
         String nodeIp = (String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP);
         Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT));
+        LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getMessageId(), nodeIp, nodePort));
         switch (message.getMessageId()) {
             case LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE:
                 MessagePeerSender peerSender;
                 if (!senderMap.containsKey(nodeIp)) {
+                    LOGGER.info("Creating new subscriber for node.");
                     peerSender = new MessagePeerSender(nodeIp, nodePort);
                     senderMap.put(nodeIp, peerSender);
                 } else {
@@ -63,9 +69,13 @@ public class RemoteSubscriptionReceiver implements Receiver {
                 if (senderMap.containsKey(nodeIp)) {
                     MessagePeerSender peerSender2 = senderMap.get(nodeIp);
                     peerSender2.removeSubscription(subscriptionId);
-                    senderMap.remove(nodeIp);
                     MessageBus.removeSubscription(subscriptionId, peerSender2);
+                    if (peerSender2.isEmpty()) {
+                        LOGGER.info("Removing subscriber for node.");
+                        senderMap.remove(nodeIp);
+                    }
                 }
+                break;
         }
     }
     

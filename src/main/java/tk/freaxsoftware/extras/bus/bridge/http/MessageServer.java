@@ -21,6 +21,8 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import static spark.Spark.*;
@@ -33,6 +35,8 @@ import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
  * @author Stanislav Nepochatov
  */
 public class MessageServer {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageServer.class);
     
     /**
      * Message util.
@@ -50,8 +54,11 @@ public class MessageServer {
      */
     public void init(ServerConfig config) {
         if (!config.isNested()) {
+            LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
             threadPool(config.getSparkThreadPoolMaxSize());
             port(config.getHttpPort());
+        } else {
+            LOGGER.info("Using nested Spark instance.");
         }
         
         post(LocalHttpIds.LOCAL_HTTP_URL, "application/json", (Request req, Response res) -> {
