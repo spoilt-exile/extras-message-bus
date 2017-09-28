@@ -28,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -49,7 +48,7 @@ public class AbstractHttpSender {
     /**
      * Http client instance.
      */
-    private final HttpClient client = HttpClientBuilder.create().build();
+    private final HttpClientBuilder clientBuilder = HttpClientBuilder.create();
     
     /**
      * Gson instance.
@@ -70,7 +69,7 @@ public class AbstractHttpSender {
     protected HttpMessageEntry sendEntry(String address, Integer port, HttpMessageEntry entry) throws UnsupportedEncodingException, IOException, ClassNotFoundException, URISyntaxException {
         HttpPost request = new HttpPost(new URI("http", null, address, port, LocalHttpIds.LOCAL_HTTP_URL, null, null));
         request.setEntity(new StringEntity(gson.toJson(entry), ContentType.APPLICATION_JSON));
-        HttpResponse response = client.execute(request);
+        HttpResponse response = clientBuilder.build().execute(request);
         if (Objects.equals(LocalHttpIds.Mode.CALLBACK, entry.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_MODE))) {
             if (response.getEntity() != null) {
                 JsonObject bodyJson = new JsonParser().parse(new InputStreamReader(response.getEntity().getContent())).getAsJsonObject();

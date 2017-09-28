@@ -19,7 +19,11 @@
 
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +52,16 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
      * Node subscriptions.
      */
     private final Set<String> subscriptions;
+    
+    /**
+     * Local date of the last heartbeat of the node.
+     */
+    private LocalDateTime beat;
+    
+    /**
+     * Lock for heart beat date.
+     */
+    private final Lock beatLock;
 
     /**
      * Default constructor.
@@ -58,6 +72,8 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
         this.address = address;
         this.port = port;
         this.subscriptions = new ConcurrentHashSet<>();
+        this.beat = LocalDateTime.now();
+        this.beatLock = new ReentrantLock();
     }
     
     /**
@@ -82,6 +98,41 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
      */
     public Boolean isEmpty() {
         return this.subscriptions.isEmpty();
+    }
+    
+    /**
+     * Update beat timestamp on current receiver.
+     */
+    public void beat() {
+        this.beatLock.lock();
+        try {
+            this.beat = LocalDateTime.now();
+            LOGGER.info("Update beat: {}", this.beat);
+        } finally {
+            this.beatLock.unlock();
+        }
+    }
+    
+    /**
+     * Get heart beat expiration status.
+     * @param beatMaxAge max allowable age of heartbeat;
+     * @return true if heartbeat were not refreshed since last check / false if heartbeat were refreshed;
+     */
+    public Boolean isBeatExpired(Integer beatMaxAge) {
+        LocalDateTime now = LocalDateTime.now();
+        long diff = 0;
+        this.beatLock.lock();
+        try {
+            diff = ChronoUnit.SECONDS.between(beat, now);
+            LOGGER.info("Beat: {}", diff);
+        } finally {
+            this.beatLock.unlock();
+        }
+        return beatMaxAge < diff;
+    }
+    
+    public String[] getSubscriptions() {
+        return this.subscriptions.toArray(new String[this.subscriptions.size()]);
     }
 
     @Override

@@ -41,6 +41,11 @@ public class LocalHttpIds {
     public static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
     
     /**
+     * Message notification for node heartbeat over HTTP.
+     */
+    public static final String LOCAL_HTTP_MESSAGE_HEARTBEAT = "Local.Http.Message.HeartBeat";
+    
+    /**
      * Local HTTP header for bridge mode.
      */
     protected static final String LOCAL_HTTP_HEADER_MODE = "Local.Http.Header.Mode";

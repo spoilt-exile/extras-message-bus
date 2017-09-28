@@ -27,6 +27,8 @@ public class ClientConfig {
     private String address;
     
     private Integer port;
+    
+    private Integer heartbeatRate;
 
     public String getAddress() {
         return address;
@@ -42,5 +44,13 @@ public class ClientConfig {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    public Integer getHeartbeatRate() {
+        return heartbeatRate;
+    }
+
+    public void setHeartbeatRate(Integer heartbeatRate) {
+        this.heartbeatRate = heartbeatRate;
     }
 }

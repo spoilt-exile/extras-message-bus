@@ -20,7 +20,10 @@
 package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
@@ -41,9 +44,37 @@ public class RemoteSubscriptionReceiver implements Receiver {
      * Remote subscribers map: node ip over senders.
      */
     private final Map<String, MessagePeerSender> senderMap;
+    
+    private ExecutorService threadService = Executors.newSingleThreadExecutor();
 
     public RemoteSubscriptionReceiver() {
         senderMap = new ConcurrentHashMap<>();
+    }
+    
+    public RemoteSubscriptionReceiver(Integer heartBeatMaxAge) {
+        this();
+        if (heartBeatMaxAge > 0) {
+            LOGGER.info(String.format("Creating remote receiver with heartbeat: %d", heartBeatMaxAge));
+            threadService.submit(new Runnable() {
+
+                public void run() {
+                    while (true) {
+                        for (Entry<String, MessagePeerSender> senderEntry: senderMap.entrySet()) {
+                            if (senderEntry.getValue().isBeatExpired(heartBeatMaxAge)) {
+                                LOGGER.warn(String.format("Killing node %s cause expired heartbeat.", senderEntry.getKey()));
+                                MessageBus.removeSubscriptions(senderEntry.getValue().getSubscriptions(), senderEntry.getValue());
+                                senderMap.remove(senderEntry.getKey());
+                            }
+                        }
+                        try {
+                            Thread.sleep(heartBeatMaxAge * 1000);
+                        } catch (InterruptedException ex) {
+                            LOGGER.error("Killer thread interrupted!", ex);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -74,6 +105,12 @@ public class RemoteSubscriptionReceiver implements Receiver {
                         LOGGER.info("Removing subscriber for node.");
                         senderMap.remove(nodeIp);
                     }
+                }
+                break;
+            case LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT:
+                if (senderMap.containsKey(nodeIp)) {
+                    MessagePeerSender peerSender3 = senderMap.get(nodeIp);
+                    peerSender3.beat();
                 }
                 break;
         }

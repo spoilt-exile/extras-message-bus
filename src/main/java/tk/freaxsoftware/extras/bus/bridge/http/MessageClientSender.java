@@ -18,10 +18,16 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalIds;
+import tk.freaxsoftware.extras.bus.HeaderBuilder;
+import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.config.http.ClientConfig;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
@@ -44,6 +50,8 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
+    private ExecutorService threadService = Executors.newSingleThreadExecutor();
+    
     /**
      * Default constructor.
      * @param serverConfig instance of server config;
@@ -53,6 +61,23 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         this.serverConfig = serverConfig;
         this.config = config;
         LOGGER.info(String.format("Init connection to node %s on port %d", config.getAddress(), config.getPort()));
+        
+        if (config.getHeartbeatRate() != null && config.getHeartbeatRate() > 0) {
+            LOGGER.info(String.format("Init heartbeat %d", config.getHeartbeatRate()));
+            threadService.submit(new Runnable() {
+
+                public void run() {
+                    while (true) {
+                        MessageBus.fire(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().async().broadcast().build());
+                        try {
+                            Thread.sleep(config.getHeartbeatRate() * 1000);
+                        } catch (InterruptedException ex) {
+                            LOGGER.error("Killer thread interrupted!", ex);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     @Override

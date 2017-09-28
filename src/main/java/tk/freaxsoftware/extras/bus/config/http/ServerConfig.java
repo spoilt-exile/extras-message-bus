@@ -26,6 +26,8 @@ public class ServerConfig {
     
     private Boolean nested;
     
+    private Integer heartbeatRate;
+    
     private Integer httpPort;
     
     private Integer sparkThreadPoolMaxSize;
@@ -36,6 +38,14 @@ public class ServerConfig {
 
     public void setNested(Boolean nested) {
         this.nested = nested;
+    }
+
+    public Integer getHeartbeatRate() {
+        return heartbeatRate;
+    }
+
+    public void setHeartbeatRate(Integer heartbeatRate) {
+        this.heartbeatRate = heartbeatRate;
     }
 
     public Integer getHttpPort() {
