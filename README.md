@@ -36,10 +36,13 @@ MessageBus.fire("Test.Empty", "SomeString");
 MessageBus.fire("Test.Empty2", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), null);
 
 //Async, point-to-point, no callback, no ensure, headers, Long content
-MessageBus.fire("Test.Empty3", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), new Long(22), MessageOptions.Builder.newInstanc().async().build());
+MessageBus.fire("Test.Empty3", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), 
+new Long(22), MessageOptions.Builder.newInstanc().async().build());
 
 //Async, point-to-point, callback, no ensure, headers, Long content
-MessageBus.fire("Test.Empty4", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), new Long(22), MessageOptions.Builder.newInstanc().async().callback((response) -> {System.out.println("Messsage callback after procession!")}).build());
+MessageBus.fire("Test.Empty4", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), 
+new Long(22), MessageOptions.Builder.newInstanc().async().callback((response) -> 
+{System.out.println("Messsage callback after procession!")}).build());
 ```
 
 ##### Available options for messages:
