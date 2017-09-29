@@ -29,6 +29,7 @@ import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.HeaderBuilder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
@@ -83,6 +84,11 @@ public class MessageBusTest {
     @Test
     public void emptyMessage() {
         MessageBus.fire(EMPTY_MESSAGE, null);
+    }
+    
+    @Test(expected = NoSubscriptionMessageException.class)
+    public void incorrectMessage() {
+        MessageBus.fire(INCORRECT_MESSAGE, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().ensure().build());
     }
     
     @Test

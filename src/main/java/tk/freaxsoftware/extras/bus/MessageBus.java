@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
 /**
@@ -184,6 +185,10 @@ public final class MessageBus {
                     }
                 }
             }, options.isAsync());
+        } else {
+            if (options.isEnsure()) {
+                throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", messageId));
+            }
         }
     }
     

@@ -39,6 +39,11 @@ public class MessageOptions {
     private boolean broadcast;
     
     /**
+     * Make sure that this message will be delivered to at least one subscriber.
+     */
+    private boolean ensure;
+    
+    /**
      * Callback for processing of message results. Can't be used 
      * with conjunction with braodcast messages.
      */
@@ -50,9 +55,10 @@ public class MessageOptions {
      * @param broadcast broadcast flag;
      * @param callback callback handler;
      */
-    private MessageOptions(boolean async, boolean broadcast, Callback callback) {
+    private MessageOptions(boolean async, boolean broadcast, boolean ensure, Callback callback) {
         this.async = async;
         this.broadcast = broadcast;
+        this.ensure = ensure;
         this.callback = callback;
     }
 
@@ -72,6 +78,14 @@ public class MessageOptions {
         this.broadcast = broadcast;
     }
 
+    public boolean isEnsure() {
+        return ensure;
+    }
+
+    public void setEnsure(boolean ensure) {
+        this.ensure = ensure;
+    }
+
     public Callback getCallback() {
         return callback;
     }
@@ -85,7 +99,7 @@ public class MessageOptions {
      * @return message options instance;
      */
     public static MessageOptions defaultOptions() {
-        return new MessageOptions(false, false, null);
+        return new MessageOptions(false, false, false, null);
     }
     
     /**
@@ -150,6 +164,24 @@ public class MessageOptions {
                 throw new IllegalStateException("Can't broadcast message with callback!");
             }
             this.instance.setBroadcast(true);
+            return this;
+        }
+        
+        /**
+         * Ensure that this message will be delivered to at least one subscriber.
+         * @return builder instance;
+         */
+        public Builder ensure() {
+            this.instance.setEnsure(true);
+            return this;
+        }
+        
+        /**
+         * Make notification message: actual delivery wan't matter.
+         * @return builder instance;
+         */
+        public Builder notification() {
+            this.instance.setEnsure(false);
             return this;
         }
         
