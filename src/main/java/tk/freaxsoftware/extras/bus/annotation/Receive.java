@@ -19,34 +19,17 @@
 
 package tk.freaxsoftware.extras.bus.annotation;
 
-import java.lang.reflect.Method;
-import tk.freaxsoftware.extras.bus.MessageHolder;
-import tk.freaxsoftware.extras.bus.Receiver;
+import static java.lang.annotation.ElementType.METHOD;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Receiver which stubs specified method by reflection.
+ * Annotation type for methods which will receive messages from bus.
  * @author Stanislav Nepochatov
  */
-public class ReflectReceiver implements Receiver {
-    
-    private final String[] subscriptions;
-    
-    private final Method method;
-    
-    private final Object target;
-
-    public ReflectReceiver(String[] subscriptions, Method method, Object target) {
-        this.subscriptions = subscriptions;
-        this.method = method;
-        this.target = target;
-    }
-
-    @Override
-    public void receive(MessageHolder message) throws Exception {
-        method.invoke(target, message);
-    }
-
-    public String[] getSubscriptions() {
-        return subscriptions;
-    }
+@Target(METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Receive {
+    String[] value();
 }

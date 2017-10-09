@@ -16,20 +16,29 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.test.annotation;
 
-package tk.freaxsoftware.extras.bus.annotation;
-
-import static java.lang.annotation.ElementType.METHOD;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.annotation.Receive;
 
 /**
- * Annotation type for methods which will receive messages from bus.
- * @author Stanislav Nepochatov
+ *
+ * @author spoilt
  */
-@Target(METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Receiver {
-    String[] value();
+public class TestReceiver {
+    
+    public static final String TEST_MESSAGE = "Org.Reflection.Test";
+    
+    public static final String TEST_MESSAGE_ERROR = "Org.Reflection.Test.Error";
+    
+    @Receive(TEST_MESSAGE)
+    public void test(MessageHolder message) {
+        message.getResponse().setContent(new Object());
+    }
+    
+    @Receive(TEST_MESSAGE_ERROR)
+    public void testError(Object content) {
+        
+    }
+    
 }
