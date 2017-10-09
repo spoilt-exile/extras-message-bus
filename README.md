@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *4.0 RC3*
+**Current version:** *4.0*
 
 ## Usage
 
