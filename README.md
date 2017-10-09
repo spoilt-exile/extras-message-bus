@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *4.0 RC2*
+**Current version:** *4.0 RC3*
 
 ## Usage
 
@@ -86,6 +86,37 @@ Message devlivery option a bit simplified in HTTP briding:
  * `CALLBACK` - sync message with callback on central node side;
 
 Such mode will be choosed in auto mode.
+
+## Annotation driven receivers
+
+It's possible to subscribe certain method of the class for several messages by using special `AnnotationUtil`.
+
+**Recevier class:**
+```java
+public class OrderService {
+    
+    @Receive("Org.Test.CreateOrder")
+    public void createOrder(MessageHolder<Order> orderMessage) {
+        //logic here
+    }
+    
+    @Receive("Org.Test.Delete")
+    public void deleteOrder(MessageHolder<Order> orderMessage) {
+        //logic here
+    }
+}
+```
+
+To subscribe:
+```java
+//Class subscription, instance will be created by annotation util
+AnnotationUtil.subscribeReceiverClass(OrderService.class);
+
+//Instance subscription
+AnnotationUtil.subscribeReceiverInstance(new OrderService(dbConnection));
+```
+
+Also `AnnotationUtil` provides opposite methods to unsubscribe instances and classes.
 
 ## Copyright and license terms
 
