@@ -87,6 +87,9 @@ public class MessageBusInit {
                 MessageBus.addSubscription(GlobalIds.GLOBAL_SUBSCRIBE, clientSender);
                 MessageBus.addSubscription(GlobalIds.GLOBAL_UNSUBSCRIBE, clientSender);
                 MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, clientSender);
+                if (config.getBridgeClient().getAdditionalSubscriptions() != null && config.getBridgeClient().getAdditionalSubscriptions().length > 0) {
+                    MessageBus.addSubscriptions(config.getBridgeClient().getAdditionalSubscriptions(), clientSender);
+                }
             } else {
                 RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
                 MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE, remoteSubscriber);

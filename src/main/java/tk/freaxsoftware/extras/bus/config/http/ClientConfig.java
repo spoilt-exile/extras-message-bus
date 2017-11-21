@@ -29,6 +29,8 @@ public class ClientConfig {
     private Integer port;
     
     private Integer heartbeatRate;
+    
+    private String[] additionalSubscriptions;
 
     public String getAddress() {
         return address;
@@ -52,5 +54,13 @@ public class ClientConfig {
 
     public void setHeartbeatRate(Integer heartbeatRate) {
         this.heartbeatRate = heartbeatRate;
+    }
+
+    public String[] getAdditionalSubscriptions() {
+        return additionalSubscriptions;
+    }
+
+    public void setAdditionalSubscriptions(String[] additionalSubscriptions) {
+        this.additionalSubscriptions = additionalSubscriptions;
     }
 }
