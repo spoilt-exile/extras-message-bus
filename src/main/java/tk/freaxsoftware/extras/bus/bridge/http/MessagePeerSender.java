@@ -21,6 +21,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -137,7 +138,9 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        if (subscriptions.contains(message.getMessageId())) {
+        if (subscriptions.contains(message.getMessageId())
+                && !(Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP), this.address) 
+                && Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT), this.port))) {
             LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getMessageId(), address, port));
             HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
             setupMessageMode(message, entry);
