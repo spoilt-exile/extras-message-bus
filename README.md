@@ -22,7 +22,7 @@ Bulk subscription possible by `addSubscriptions(stringArray, receiver)`
 Each message contains:
  * `messageId` - id of the message destination (address);
  * `headers` - string-to-string map for additional data;
- * `content` - any object;
+ * `content` - any object (class payload should be familiar to server and subscriber);
 
 Also message can hold response but it's only available to callback. See below.
 
