@@ -116,7 +116,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
         this.beatLock.lock();
         try {
             this.beat = LocalDateTime.now();
-            LOGGER.info("Update beat: {}", this.beat);
+            LOGGER.debug("Update beat: {}", this.beat);
         } finally {
             this.beatLock.unlock();
         }
@@ -133,7 +133,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
         this.beatLock.lock();
         try {
             diff = ChronoUnit.SECONDS.between(beat, now);
-            LOGGER.info("Beat: {}", diff);
+            LOGGER.debug("Beat: {}", diff);
         } finally {
             this.beatLock.unlock();
         }

@@ -21,6 +21,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -83,7 +84,9 @@ public class RemoteSubscriptionReceiver implements Receiver {
         String subscriptionId = (String) message.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID);
         String nodeIp = (String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP);
         Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT));
-        LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getMessageId(), nodeIp, nodePort));
+        if (!Objects.equals(message.getMessageId(), LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT)) {
+            LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getMessageId(), nodeIp, nodePort));
+        }
         switch (message.getMessageId()) {
             case LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE:
                 MessagePeerSender peerSender;
