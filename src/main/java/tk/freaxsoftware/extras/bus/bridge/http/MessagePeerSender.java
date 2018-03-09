@@ -78,6 +78,14 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     }
     
     /**
+     * Add message subscriptions from the set.
+     * @param ids set of ids to subscribe;
+     */
+    public void addSubscriptions(Set<String> ids) {
+        this.subscriptions.addAll(ids);
+    }
+    
+    /**
      * Add subscription.
      * @param id message id;
      */

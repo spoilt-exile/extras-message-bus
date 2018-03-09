@@ -21,6 +21,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -111,6 +112,17 @@ public class RemoteSubscriptionReceiver implements Receiver {
                 if (senderMap.containsKey(nodeIp)) {
                     MessagePeerSender peerSender3 = senderMap.get(nodeIp);
                     peerSender3.beat();
+                } else {
+                    LOGGER.info("Reinit connection for " + nodeIp + " on port " + nodePort);
+                    MessagePeerSender peerSender4 = new MessagePeerSender(nodeIp, nodePort);
+                    senderMap.put(nodeIp, peerSender4);
+                    if (message.getContent() != null) {
+                        Set<String> reconnectIds = (Set) message.getContent();
+                        MessageBus.addSubscriptions(reconnectIds.toArray(new String[reconnectIds.size()]), peerSender4);
+                        peerSender4.addSubscriptions(reconnectIds);
+                    } else {
+                        LOGGER.error("Can't reinit connection for " + nodeIp + " on port " + nodePort + " due to lack of list of subscriptions!");
+                    }
                 }
                 break;
         }
