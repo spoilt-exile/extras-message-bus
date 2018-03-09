@@ -21,6 +21,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -77,6 +78,14 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     }
     
     /**
+     * Add message subscriptions from the set.
+     * @param ids set of ids to subscribe;
+     */
+    public void addSubscriptions(Set<String> ids) {
+        this.subscriptions.addAll(ids);
+    }
+    
+    /**
      * Add subscription.
      * @param id message id;
      */
@@ -107,7 +116,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
         this.beatLock.lock();
         try {
             this.beat = LocalDateTime.now();
-            LOGGER.info("Update beat: {}", this.beat);
+            LOGGER.debug("Update beat: {}", this.beat);
         } finally {
             this.beatLock.unlock();
         }
@@ -124,7 +133,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
         this.beatLock.lock();
         try {
             diff = ChronoUnit.SECONDS.between(beat, now);
-            LOGGER.info("Beat: {}", diff);
+            LOGGER.debug("Beat: {}", diff);
         } finally {
             this.beatLock.unlock();
         }
@@ -137,13 +146,17 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        if (subscriptions.contains(message.getMessageId())) {
+        if (subscriptions.contains(message.getMessageId())
+                && !(Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP), this.address) 
+                && Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT), this.port))) {
             LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getMessageId(), address, port));
             HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
             setupMessageMode(message, entry);
             HttpMessageEntry response = sendEntry(address, port, entry);
-            message.getResponse().setContent(response.getContent());
-            message.getResponse().setHeaders(response.getHeaders());
+            if (response != null) {
+                message.getResponse().setContent(response.getContent());
+                message.getResponse().setHeaders(response.getHeaders());
+            }
         }
     }
     

@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *4.0*
+**Current version:** *4.1*
 
 ## Usage
 
@@ -22,7 +22,7 @@ Bulk subscription possible by `addSubscriptions(stringArray, receiver)`
 Each message contains:
  * `messageId` - id of the message destination (address);
  * `headers` - string-to-string map for additional data;
- * `content` - any object;
+ * `content` - any object (class payload should be familiar to server and subscriber);
 
 Also message can hold response but it's only available to callback. See below.
 
@@ -73,7 +73,11 @@ Example:
     "bridgeClient": { //Config to establish connection to message bus server;
         "address": "127.0.0.1", //Address of the server;
         "port": 8080, //Port of the server;
-        "heartbeatRate": 10 //Heart beat rate in seconds;
+        "heartbeatRate": 10, //Heart beat rate in seconds;
+        "additionalSubscriptions": [ //Make additional subscriptions to send on server;
+            "TEST",
+            "TEST2",
+        ]
     }
 }
 ```
