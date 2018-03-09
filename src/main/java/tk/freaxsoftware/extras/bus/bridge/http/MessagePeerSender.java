@@ -145,8 +145,10 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
             HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
             setupMessageMode(message, entry);
             HttpMessageEntry response = sendEntry(address, port, entry);
-            message.getResponse().setContent(response.getContent());
-            message.getResponse().setHeaders(response.getHeaders());
+            if (response != null) {
+                message.getResponse().setContent(response.getContent());
+                message.getResponse().setHeaders(response.getHeaders());
+            }
         }
     }
     
