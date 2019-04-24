@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *4.1*
+**Current version:** *4.2*
 
 ## Usage
 
@@ -83,6 +83,8 @@ Example:
 ```
 
 Central node should config only `bridgeServer` but other nodes should config both server and client. How it works: central node will establish server and listens for other node subscriptions, when mentioned event happens on central node it will be delivered on subscriber node via HTTP. In order to make node connection reliable also add `heartBeatRate` on central node server config and on subscriber node client config. Heart beat rate should be at lest slightly larger on server side. Node with obselete heart beat will be disconnected by force.
+
+Bridge server and client config can be overrided by system properties if needed. Following properties available by now: `bridge.server.hearbeat`, `bridge.server.port`, `bridge.client.address` and `bridge.client.port`;
 
 Message devlivery option a bit simplified in HTTP briding:
  * `SIMPLE` - async point-to-point message without callback;
