@@ -44,7 +44,7 @@ public class PropertyConfigProcessor {
         /**
          * Set address for server to connect.
          */
-        BRIDGE_CLIENT_ADDRESS("bridge.client.address", (config, property) -> {config.getBridgeClient().setAddress(property);}),
+        BRIDGE_CLIENT_ADDRESS("bridge.client.address", (config, property) -> {config.getBridgeClient().setAddress(System.getProperty(property));}),
         
         /**
          * Set http port for client to comminicate with server.
