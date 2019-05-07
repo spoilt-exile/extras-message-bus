@@ -30,6 +30,7 @@ import tk.freaxsoftware.extras.bus.bridge.http.MessageClientSender;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageServer;
 import tk.freaxsoftware.extras.bus.bridge.http.RemoteSubscriptionReceiver;
 import tk.freaxsoftware.extras.bus.config.MessageBusConfig;
+import tk.freaxsoftware.extras.bus.config.PropertyConfigProcessor;
 import tk.freaxsoftware.extras.bus.config.pool.PoolType;
 import tk.freaxsoftware.extras.bus.config.pool.ThreadPoolConfig;
 
@@ -76,6 +77,7 @@ public class MessageBusInit {
         MessageBusConfig standardConfig = readStandard();
         
         config = standardConfig == null ? defaultConfig : standardConfig;
+        PropertyConfigProcessor.process(config);
         executor = new BlockExecutor(config.getThreadPoolConfig().buildThreadPool());
         
         if (config.getBridgeServer() != null) {
