@@ -186,7 +186,7 @@ public final class MessageBus {
                 }
             }, options.isAsync());
         } else {
-            if (options.isEnsure()) {
+            if (options.getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", messageId));
             }
         }

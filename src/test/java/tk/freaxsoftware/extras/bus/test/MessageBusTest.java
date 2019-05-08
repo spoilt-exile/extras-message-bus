@@ -88,7 +88,7 @@ public class MessageBusTest {
     
     @Test(expected = NoSubscriptionMessageException.class)
     public void incorrectMessage() {
-        MessageBus.fire(INCORRECT_MESSAGE, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().ensure().build());
+        MessageBus.fire(INCORRECT_MESSAGE, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().deliveryCall().build());
     }
     
     @Test

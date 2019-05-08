@@ -39,9 +39,9 @@ public class MessageOptions {
     private boolean broadcast;
     
     /**
-     * Make sure that this message will be delivered to at least one subscriber.
+     * Describes behavior of the bus if message is unprocessed.
      */
-    private boolean ensure;
+    private DeliveryPolicy deliveryPolicy;
     
     /**
      * Callback for processing of message results. Can't be used 
@@ -53,12 +53,13 @@ public class MessageOptions {
      * Private constructor.
      * @param async async flag;
      * @param broadcast broadcast flag;
+     * @param deliveryPolicy delivery policy;
      * @param callback callback handler;
      */
-    private MessageOptions(boolean async, boolean broadcast, boolean ensure, Callback callback) {
+    private MessageOptions(boolean async, boolean broadcast, DeliveryPolicy deliveryPolicy, Callback callback) {
         this.async = async;
         this.broadcast = broadcast;
-        this.ensure = ensure;
+        this.deliveryPolicy = deliveryPolicy;
         this.callback = callback;
     }
 
@@ -78,12 +79,12 @@ public class MessageOptions {
         this.broadcast = broadcast;
     }
 
-    public boolean isEnsure() {
-        return ensure;
+    public DeliveryPolicy getDeliveryPolicy() {
+        return deliveryPolicy;
     }
 
-    public void setEnsure(boolean ensure) {
-        this.ensure = ensure;
+    public void setDeliveryPolicy(DeliveryPolicy deliveryPolicy) {
+        this.deliveryPolicy = deliveryPolicy;
     }
 
     public Callback getCallback() {
@@ -95,11 +96,49 @@ public class MessageOptions {
     }
     
     /**
+     * Delivery policy for unprocessed messages.
+     */
+    public static enum DeliveryPolicy {
+        
+        /**
+         * Forget about unprocessed messages.
+         */
+        VOID,
+        
+        /**
+         * Throw an exception if no subscribers available.
+         */
+        THROW,
+        
+        /**
+         * Store messages in storage until subscriber unavailable.
+         */
+        STORE;
+    }
+    
+    /**
      * Builds defatul message options: sync point-to-point message without callback.
      * @return message options instance;
      */
     public static MessageOptions defaultOptions() {
-        return new MessageOptions(false, false, false, null);
+        return new MessageOptions(false, false, DeliveryPolicy.VOID, null);
+    }
+    
+    /**
+     * Builds message options for notifications: async, broadcast, with storage for unprocessed messages.
+     * @return message options instance;
+     */
+    public static MessageOptions notificationOptions() {
+        return new MessageOptions(true, true, DeliveryPolicy.STORE, null);
+    }
+    
+    /**
+     * Builds message options for call to another system: sync, point-to-point, ensured with callback.
+     * @param callback message callback;
+     * @return message options instance;
+     */
+    public static MessageOptions callOptions(Callback callback) {
+        return new MessageOptions(false, false, DeliveryPolicy.THROW, callback);
     }
     
     /**
@@ -166,22 +205,31 @@ public class MessageOptions {
             this.instance.setBroadcast(true);
             return this;
         }
-        
+       
         /**
-         * Ensure that this message will be delivered to at least one subscriber.
-         * @return builder instance;
+         * Use VOID delivery policy. Acceptable only for messages with minor importance.
+         * @return builder instance.
          */
-        public Builder ensure() {
-            this.instance.setEnsure(true);
+        public Builder deliveryVoid() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.VOID);
             return this;
         }
         
         /**
-         * Make notification message: actual delivery wan't matter.
-         * @return builder instance;
+         * Use THROW delivery policy. Fit for timed operations where response required.
+         * @return builder instance.
          */
-        public Builder notification() {
-            this.instance.setEnsure(false);
+        public Builder deliveryCall() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.THROW);
+            return this;
+        }
+        
+        /**
+         * Use STORE delivery policy. Fit for messages which can be processed anytime in future.
+         * @return builder instance.
+         */
+        public Builder deliveryNotification() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
             return this;
         }
         
