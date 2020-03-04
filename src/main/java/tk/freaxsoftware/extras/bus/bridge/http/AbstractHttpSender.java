@@ -38,7 +38,7 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
  * Abstract HTTP sender implements single method for sending by http.
  * @author Stanislav Nepochatov
  */
-public class AbstractHttpSender {
+public abstract class AbstractHttpSender {
     
     /**
      * Message util instance.
