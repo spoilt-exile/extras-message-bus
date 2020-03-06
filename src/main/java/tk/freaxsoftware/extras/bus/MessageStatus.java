@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2015 Freax Software
+ * Copyright (C) 2020 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,45 +16,31 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-
 package tk.freaxsoftware.extras.bus;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Message header helper;
+ * Status of the message.
  * @author Stanislav Nepochatov
  */
-public class HeaderBuilder {
-    
-    private final Map<String, String> args = new HashMap<>();
+public enum MessageStatus {
     
     /**
-     * Add pair of key and value to header builder.
-     * @param argKey key;
-     * @param argValue value;
-     * @return builder instance;
+     * Message just commited to the bus.
      */
-    public HeaderBuilder put(String argKey, String argValue) {
-        this.args.put(argKey, argValue);
-        return this;
-    }
+    NEW,
     
     /**
-     * Get headers from builder.
-     * @return map of headers;
+     * Message delivered to receiver and processing already started.
      */
-    public Map<String, String> build() {
-        return this.args;
-    }
+    PROCESSING,
     
     /**
-     * Get new builder.
-     * @return builder;
+     * Message processing is finished without errors.
      */
-    public static final HeaderBuilder newInstance() {
-        return new HeaderBuilder();
-    }
+    FINISHED,
     
+    /**
+     * Message processing completed with error or not completed at all.
+     */
+    ERROR;
 }

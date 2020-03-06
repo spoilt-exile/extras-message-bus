@@ -25,7 +25,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpIds;
+import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageClientSender;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageServer;
 import tk.freaxsoftware.extras.bus.bridge.http.RemoteSubscriptionReceiver;
@@ -86,17 +86,17 @@ public class MessageBusInit {
             
             if (config.getBridgeClient() != null) {
                 MessageClientSender clientSender = new MessageClientSender(config.getBridgeServer(), config.getBridgeClient());
-                MessageBus.addSubscription(GlobalIds.GLOBAL_SUBSCRIBE, clientSender);
-                MessageBus.addSubscription(GlobalIds.GLOBAL_UNSUBSCRIBE, clientSender);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, clientSender);
+                MessageBus.addSubscription(GlobalCons.G_SUBSCRIBE_TOPIC, clientSender);
+                MessageBus.addSubscription(GlobalCons.G_UNSUBSCRIBE_TOPIC, clientSender);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, clientSender);
                 if (config.getBridgeClient().getAdditionalSubscriptions() != null && config.getBridgeClient().getAdditionalSubscriptions().length > 0) {
                     MessageBus.addSubscriptions(config.getBridgeClient().getAdditionalSubscriptions(), clientSender);
                 }
             } else {
                 RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE, remoteSubscriber);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE, remoteSubscriber);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, remoteSubscriber);
             }
         }
         

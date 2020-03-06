@@ -67,20 +67,20 @@ public abstract class AbstractHttpSender {
      * @throws URISyntaxException 
      */
     protected HttpMessageEntry sendEntry(String address, Integer port, HttpMessageEntry entry) throws UnsupportedEncodingException, IOException, ClassNotFoundException, URISyntaxException {
-        HttpPost request = new HttpPost(new URI("http", null, address, port, LocalHttpIds.LOCAL_HTTP_URL, null, null));
+        HttpPost request = new HttpPost(new URI("http", null, address, port, LocalHttpCons.L_HTTP_URL, null, null));
         request.setEntity(new StringEntity(gson.toJson(entry), ContentType.APPLICATION_JSON));
         HttpResponse response = clientBuilder.build().execute(request);
-        if (Objects.equals(LocalHttpIds.Mode.CALLBACK, entry.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_MODE))) {
+        if (Objects.equals(LocalHttpCons.Mode.CALLBACK, entry.getHeaders().get(LocalHttpCons.L_HTTP_MODE_HEADER))) {
             if (response.getEntity() != null) {
                 JsonObject bodyJson = new JsonParser().parse(new InputStreamReader(response.getEntity().getContent())).getAsJsonObject();
                 HttpMessageEntry responseEntry = messageUtil.deserialize(bodyJson);
                 return responseEntry;
             } else {
-                throw new IllegalStateException(String.format("Node %s didn't return callback on message %s", address, entry.getMessageId()));
+                throw new IllegalStateException(String.format("Node %s didn't return callback on message %s", address, entry.getTopic()));
             }
         } else {
             if (response.getStatusLine().getStatusCode() > 400) {
-                throw new IllegalStateException(String.format("Node %s returns error status %d on message %s", address, response.getStatusLine().getStatusCode(), entry.getMessageId()));
+                throw new IllegalStateException(String.format("Node %s returns error status %d on message %s", address, response.getStatusLine().getStatusCode(), entry.getTopic()));
             }
         }
         return null;
@@ -93,11 +93,11 @@ public abstract class AbstractHttpSender {
      */
     protected void setupMessageMode(MessageHolder message, HttpMessageEntry entry) {
         if (message.getOptions().isBroadcast()) {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.BROADCAST);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.BROADCAST);
         } else if (message.getOptions().getCallback() != null) {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.CALLBACK);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.CALLBACK);
         } else {
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC);
         }
     }
 }

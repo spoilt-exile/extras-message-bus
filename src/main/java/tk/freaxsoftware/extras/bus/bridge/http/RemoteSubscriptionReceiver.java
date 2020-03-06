@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.GlobalIds;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
@@ -81,14 +81,14 @@ public class RemoteSubscriptionReceiver implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        String subscriptionId = (String) message.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID);
-        String nodeIp = (String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP);
-        Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT));
-        if (!Objects.equals(message.getMessageId(), LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT)) {
-            LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getMessageId(), nodeIp, nodePort));
+        String subscriptionId = (String) message.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER);
+        String nodeIp = (String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER);
+        Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_PORT_HEADER));
+        if (!Objects.equals(message.getTopic(), LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC)) {
+            LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getTopic(), nodeIp, nodePort));
         }
-        switch (message.getMessageId()) {
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE:
+        switch (message.getTopic()) {
+            case LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC:
                 MessagePeerSender peerSender;
                 if (!senderMap.containsKey(nodeIp)) {
                     LOGGER.info("Creating new subscriber for node.");
@@ -100,7 +100,7 @@ public class RemoteSubscriptionReceiver implements Receiver {
                 peerSender.addSubscription(subscriptionId);
                 MessageBus.addSubscription(subscriptionId, peerSender);
                 break;
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE:
+            case LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC:
                 if (senderMap.containsKey(nodeIp)) {
                     MessagePeerSender peerSender2 = senderMap.get(nodeIp);
                     peerSender2.removeSubscription(subscriptionId);
@@ -111,7 +111,7 @@ public class RemoteSubscriptionReceiver implements Receiver {
                     }
                 }
                 break;
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT:
+            case LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC:
                 if (senderMap.containsKey(nodeIp)) {
                     MessagePeerSender peerSender3 = senderMap.get(nodeIp);
                     peerSender3.beat();

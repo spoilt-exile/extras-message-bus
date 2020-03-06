@@ -61,19 +61,19 @@ public class MessageServer {
             LOGGER.info("Using nested Spark instance.");
         }
         
-        post(LocalHttpIds.LOCAL_HTTP_URL, "application/json", (Request req, Response res) -> {
+        post(LocalHttpCons.L_HTTP_URL, "application/json", (Request req, Response res) -> {
             JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP, req.ip());
-            LocalHttpIds.Mode mode = LocalHttpIds.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name()));
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
+            LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();
             switch (mode) {
                 case BROADCAST:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().broadcast().build());
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().broadcast().build());
                     break;
                 case CALLBACK:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().callback((messageResponse) -> {
-                        response.setMessageId(entry.getMessageId());
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().callback((messageResponse) -> {
+                        response.setTopic(entry.getTopic());
                         response.setHeaders(messageResponse.getHeaders());
                         if (messageResponse.getContent() != null) {
                             response.setFullTypeName(messageResponse.getContent().getClass().getCanonicalName());
@@ -83,9 +83,9 @@ public class MessageServer {
                     }).build());
                     break;
                 default:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().build());
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().build());
             }
-            if (response.getMessageId() != null) {
+            if (response.getTopic() != null) {
                 return response;
             } else {
                 res.status(200);

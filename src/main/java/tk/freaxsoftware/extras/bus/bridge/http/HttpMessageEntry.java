@@ -19,7 +19,10 @@
 
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.Objects;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 
 /**
  * HTTP message entry. Used for incoming message and it's response.
@@ -29,9 +32,29 @@ import java.util.Map;
 public class HttpMessageEntry<T> {
     
     /**
-     * Message id: destination.
+     * Unique id of the message.
      */
-    private String messageId;
+    private String id;
+    
+    /**
+     * Date of message creation.
+     */
+    private ZonedDateTime created;
+    
+    /**
+     * Date of the last message update.
+     */
+    private ZonedDateTime updated;
+    
+    /**
+     * Status of the message.
+     */
+    private MessageStatus status;
+    
+    /**
+     * Message destination.
+     */
+    private String topic;
     
     /**
      * Headers of the message.
@@ -56,7 +79,7 @@ public class HttpMessageEntry<T> {
     public HttpMessageEntry() {}
 
     public HttpMessageEntry(String messageId, Map<String, String> headers, T content) {
-        this.messageId = messageId;
+        this.topic = messageId;
         this.headers = headers;
         this.content = content;
         if (this.content != null) {
@@ -65,12 +88,44 @@ public class HttpMessageEntry<T> {
         }
     }
 
-    public String getMessageId() {
-        return messageId;
+    public String getId() {
+        return id;
     }
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public ZonedDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(ZonedDateTime created) {
+        this.created = created;
+    }
+
+    public ZonedDateTime getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(ZonedDateTime updated) {
+        this.updated = updated;
+    }
+
+    public MessageStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MessageStatus status) {
+        this.status = status;
+    }
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 
     public Map<String, String> getHeaders() {
@@ -104,5 +159,29 @@ public class HttpMessageEntry<T> {
     public void setContent(T content) {
         this.content = content;
     }
-    
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 71 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final HttpMessageEntry<?> other = (HttpMessageEntry<?>) obj;
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        return true;
+    }
 }

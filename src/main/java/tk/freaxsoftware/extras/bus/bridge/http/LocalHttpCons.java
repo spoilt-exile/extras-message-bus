@@ -20,45 +20,45 @@
 package tk.freaxsoftware.extras.bus.bridge.http;
 
 /**
- * Local id class related to http bridge.
+ * Local constants class related to http bridge.
  * @author Stanislav Nepochatov
  */
-public class LocalHttpIds {
+public class LocalHttpCons {
     
     /**
      * Url for listening on messages.
      */
-    protected static final String LOCAL_HTTP_URL = "/broker/message";
+    protected static final String L_HTTP_URL = "/broker/message";
     
     /**
      * Message notification of subscription over HTTP.
      */
-    public static final String LOCAL_HTTP_MESSAGE_SUBSCRIBE = "Local.Http.Message.Subscribe";
+    public static final String L_HTTP_SUBSCRIBE_TOPIC = "Local.Http.Message.Subscribe";
     
     /**
      * Message notification of unsubscription over HTTP.
      */
-    public static final String LOCAL_HTTP_MESSAGE_UNSUBSCRIBE = "Local.Http.Message.Unsubscribe";
+    public static final String L_HTTP_UNSUBSCRIBE_TOPIC = "Local.Http.Message.Unsubscribe";
     
     /**
      * Message notification for node heartbeat over HTTP.
      */
-    public static final String LOCAL_HTTP_MESSAGE_HEARTBEAT = "Local.Http.Message.HeartBeat";
+    public static final String L_HTTP_HEARTBEAT_TOPIC = "Local.Http.Message.HeartBeat";
     
     /**
      * Local HTTP header for bridge mode.
      */
-    protected static final String LOCAL_HTTP_HEADER_MODE = "Local.Http.Header.Mode";
+    protected static final String L_HTTP_MODE_HEADER = "Local.Http.Header.Mode";
     
     /**
      * Local HTTP header for node IP address.
      */
-    protected static final String LOCAL_HTTP_HEADER_NODE_IP = "Local.Http.Header.NodeIP";
+    protected static final String L_HTTP_NODE_IP_HEADER = "Local.Http.Header.NodeIP";
     
     /**
      * Local HTTP header for node port number.
      */
-    protected static final String LOCAL_HTTP_HEADER_NODE_PORT = "Local.Http.Header.NodePort";
+    protected static final String L_HTTP_NODE_PORT_HEADER = "Local.Http.Header.NodePort";
     
     /**
      * Enum for HTTP bridging mode.
@@ -68,7 +68,7 @@ public class LocalHttpIds {
         /**
          * Async, single, no callback.
          */
-        SIMPLE,
+        ASYNC,
         
         /**
          * Sync, single with callback.

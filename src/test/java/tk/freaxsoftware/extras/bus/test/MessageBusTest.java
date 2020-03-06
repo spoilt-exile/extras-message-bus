@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.GlobalIds;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.HeaderBuilder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
@@ -63,12 +63,12 @@ public class MessageBusTest {
             throw new Exception(EXCEPTION_CLASS);
         });
         MessageBus.addSubscription(EMPTY_MESSAGE, (MessageHolder holder) -> {
-            assertEquals(holder.getMessageId(), EMPTY_MESSAGE);
-            logger.warn(holder.getMessageId() + " received!");
+            assertEquals(holder.getTopic(), EMPTY_MESSAGE);
+            logger.warn(holder.getTopic() + " received!");
         });
         MessageBus.addSubscription(MULTIPLIE_MESSAGE, (MessageHolder holder) -> {
-            assertEquals(holder.getMessageId(), MULTIPLIE_MESSAGE);
-            logger.warn(holder.getMessageId() + " received!");
+            assertEquals(holder.getTopic(), MULTIPLIE_MESSAGE);
+            logger.warn(holder.getTopic() + " received!");
             Integer digit1 = Integer.parseInt((String) holder.getHeaders().get(ARG_MULTIPLIE_DIGIT1));
             Integer digit2 = Integer.parseInt((String) holder.getHeaders().get(ARG_MULTIPLIE_DIGIT2));
             Integer multiplied = digit1 * digit2;
@@ -94,15 +94,15 @@ public class MessageBusTest {
     @Test
     public void emptyMessageException() {
         MessageBus.fire(EMPTY_MESSAGE, null, MessageOptions.Builder.newInstance().callback((result) -> {
-            assertTrue(result.getHeaders().containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION));
-            String last = (String) result.getHeaders().get(GlobalIds.GLOBAL_HEADER_EXCEPTION);
+            assertTrue(result.getHeaders().containsKey(GlobalCons.G_EXCEPTION_HEADER));
+            String last = (String) result.getHeaders().get(GlobalCons.G_EXCEPTION_HEADER);
             assertEquals(last, EXCEPTION_CLASS);
         }).build());
     }
     
     @Test
     public void multiplieMessage() {
-        MessageBus.fire(MULTIPLIE_MESSAGE, HeaderBuilder.newInstance().putArg(ARG_MULTIPLIE_DIGIT1, "2").putArg(ARG_MULTIPLIE_DIGIT2, "2").build(), MessageOptions.Builder.newInstance().callback((result) -> {
+        MessageBus.fire(MULTIPLIE_MESSAGE, HeaderBuilder.newInstance().put(ARG_MULTIPLIE_DIGIT1, "2").put(ARG_MULTIPLIE_DIGIT2, "2").build(), MessageOptions.Builder.newInstance().callback((result) -> {
             assertNotNull(result.getContent());
             Integer resultInt = (Integer) result.getContent();
             assertEquals(resultInt, new Integer(4));

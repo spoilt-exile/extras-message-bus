@@ -146,11 +146,11 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        if (subscriptions.contains(message.getMessageId())
-                && !(Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP), this.address) 
-                && Objects.equals(message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT), this.port))) {
-            LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getMessageId(), address, port));
-            HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
+        if (subscriptions.contains(message.getTopic())
+                && !(Objects.equals(message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER), this.address) 
+                && Objects.equals(message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_PORT_HEADER), this.port))) {
+            LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getTopic(), address, port));
+            HttpMessageEntry entry = new HttpMessageEntry(message.getTopic(), message.getHeaders(), message.getContent());
             setupMessageMode(message, entry);
             HttpMessageEntry response = sendEntry(address, port, entry);
             if (response != null) {

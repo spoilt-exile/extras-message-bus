@@ -19,38 +19,28 @@
 package tk.freaxsoftware.extras.bus;
 
 /**
- * Global ids class provide name of global and wide used messages and data keys.
+ * Global constants class provide name of global and wide used messages and data keys.
  * @author Stanislav Nepochatov
  */
-public class GlobalIds {
+public class GlobalCons {
     
     /**
      * Global notification on new subscriptions.
      */
-    public static final String GLOBAL_SUBSCRIBE = "Global.Subscribe";
+    public static final String G_SUBSCRIBE_TOPIC = "Global.Subscribe";
     
     /**
      * Global notification on subscriptions cancelation.
      */
-    public static final String GLOBAL_UNSUBSCRIBE = "Global.Unsubscribe";
+    public static final String G_UNSUBSCRIBE_TOPIC = "Global.Unsubscribe";
     
     /**
-     * Global header for new subsciption id.
+     * Global header for new subsciption topic.
      */
-    public static final String GLOBAL_HEADER_SUBSCRIPTION_ID = "Global.Headers.SubscriptionId";
+    public static final String G_SUBSCRIPTION_DEST_HEADER = "Global.Headers.SubscriptionTopic";
     
     /**
      * Global header for exception class. May be overrided by last executed receiver.
      */
-    public static final String GLOBAL_HEADER_EXCEPTION = "Global.Headers.Exception";
-    
-    /**
-     * Id for result of simple messaging. Result is not an error.
-     */
-    public static final String GLOBAL_MESSAGE = "Global.Message";
-    
-    /**
-     * Id of error message result.
-     */
-    public static final String GLOBAL_ERROR_MESSAGE = "Global.Error.Message";
+    public static final String G_EXCEPTION_HEADER = "Global.Headers.Exception";
 }

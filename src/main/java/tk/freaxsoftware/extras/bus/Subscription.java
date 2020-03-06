@@ -28,9 +28,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class Subscription {
     
     /**
-     * Id of message subscription.
+     * Topic of message subscription.
      */
-    private final String id;
+    private final String topic;
     
     /**
      * Receivers list.
@@ -44,15 +44,15 @@ public class Subscription {
     
     /**
      * Default constructor.
-     * @param id id of subscription.
+     * @param topic destination of subscription.
      */
-    public Subscription(String id) {
-        this.id = id;
+    public Subscription(String topic) {
+        this.topic = topic;
         receivers = new CopyOnWriteArrayList<>();
     }
 
-    public String getId() {
-        return id;
+    public String getTopic() {
+        return topic;
     }
 
     public List<Receiver> getReceivers() {
