@@ -25,7 +25,6 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalCons;
-import tk.freaxsoftware.extras.bus.HeaderBuilder;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
@@ -72,7 +71,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
                 public void run() {
                     while (true) {
                         try {
-                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().sync().broadcast().build());
+                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().build());
                         } catch (Exception ex) {
                             LOGGER.error("Can't send heartbeat, maybe server is offline, reinit connection", ex);
                         }

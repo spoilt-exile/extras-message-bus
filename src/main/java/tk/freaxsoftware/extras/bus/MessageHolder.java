@@ -94,6 +94,7 @@ public class MessageHolder<T> {
      */
     public MessageHolder(String topic, MessageOptions options, T content) {
         this();
+        this.headers = options.getHeaders();
         this.topic = topic;
         this.options = options;
         this.content = content;

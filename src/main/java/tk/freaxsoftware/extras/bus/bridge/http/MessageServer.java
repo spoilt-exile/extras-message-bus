@@ -69,10 +69,10 @@ public class MessageServer {
             HttpMessageEntry response = new HttpMessageEntry();
             switch (mode) {
                 case BROADCAST:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().broadcast().build());
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().async().broadcast().headers(entry.getHeaders()).build());
                     break;
                 case CALLBACK:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().callback((messageResponse) -> {
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().headers(entry.getHeaders()).callback((messageResponse) -> {
                         response.setTopic(entry.getTopic());
                         response.setHeaders(messageResponse.getHeaders());
                         if (messageResponse.getContent() != null) {
@@ -83,7 +83,7 @@ public class MessageServer {
                     }).build());
                     break;
                 default:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().build());
+                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build());
             }
             if (response.getTopic() != null) {
                 return response;

@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
-import tk.freaxsoftware.extras.bus.HeaderBuilder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
@@ -83,12 +82,12 @@ public class MessageBusTest {
     
     @Test
     public void emptyMessage() {
-        MessageBus.fire(EMPTY_MESSAGE, null);
+        MessageBus.fire(EMPTY_MESSAGE, MessageOptions.defaultOptions(null));
     }
     
     @Test(expected = NoSubscriptionMessageException.class)
     public void incorrectMessage() {
-        MessageBus.fire(INCORRECT_MESSAGE, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().deliveryCall().build());
+        MessageBus.fire(INCORRECT_MESSAGE, MessageOptions.Builder.newInstance().deliveryCall().build());
     }
     
     @Test
@@ -102,7 +101,7 @@ public class MessageBusTest {
     
     @Test
     public void multiplieMessage() {
-        MessageBus.fire(MULTIPLIE_MESSAGE, HeaderBuilder.newInstance().put(ARG_MULTIPLIE_DIGIT1, "2").put(ARG_MULTIPLIE_DIGIT2, "2").build(), MessageOptions.Builder.newInstance().callback((result) -> {
+        MessageBus.fire(MULTIPLIE_MESSAGE, MessageOptions.Builder.newInstance().header(ARG_MULTIPLIE_DIGIT1, "2").header(ARG_MULTIPLIE_DIGIT2, "2").callback((result) -> {
             assertNotNull(result.getContent());
             Integer resultInt = (Integer) result.getContent();
             assertEquals(resultInt, new Integer(4));

@@ -66,8 +66,8 @@ public final class MessageBus {
             subscription.addReceiver(receiver);
         }
         fire(GlobalCons.G_SUBSCRIBE_TOPIC, receiver, 
-                HeaderBuilder.newInstance().put(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build(), 
-                MessageOptions.Builder.newInstance().async().broadcast().build());
+                MessageOptions.Builder.newInstance().async().broadcast()
+                        .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
     
     /**
@@ -97,8 +97,8 @@ public final class MessageBus {
             }
         }
         fire(GlobalCons.G_UNSUBSCRIBE_TOPIC, receiver, 
-                HeaderBuilder.newInstance().put(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build(), 
-                MessageOptions.Builder.newInstance().async().broadcast().build());
+                MessageOptions.Builder.newInstance().async().broadcast()
+                        .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
     
     /**
@@ -128,18 +128,17 @@ public final class MessageBus {
      * @param content message content;
      */
     public static <T> void fire(final String topic, final T content) {
-        fire(topic, content, null, MessageOptions.defaultOptions());
+        fire(topic, content, MessageOptions.defaultOptions(null));
     }
     
     /**
      * Fire message to the bus.
      * @param <T> type of content;
      * @param topic destination of message;
-     * @param headers message headers;
      * @param options options for message processing;
      */
-    public static <T> void fire(final String topic, final Map<String, String> headers, final MessageOptions options) {
-        fire(topic, null, headers, options);
+    public static <T> void fire(final String topic, final MessageOptions options) {
+        fire(topic, null, options);
     }
     
     /**
@@ -147,10 +146,9 @@ public final class MessageBus {
      * @param <T> type of content;
      * @param topic destination of message;
      * @param content message content;
-     * @param headers message headers;
      * @param options options for message processing;
      */
-    public static <T> void fire(final String topic, final T content, final Map<String, String> headers, final MessageOptions options) {
+    public static <T> void fire(final String topic, final T content, final MessageOptions options) {
         init();
         if (options == null) {
             throw new IllegalArgumentException("Message options can't be null!");
@@ -161,9 +159,6 @@ public final class MessageBus {
             init.getExecutor().execute(() -> {
                 if (options.isBroadcast()) {
                     MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-                    if (headers != null) {
-                        holder.setHeaders(headers);
-                    }
                     for (Receiver receiver: subscription.getReceivers()) {
                         try {
                             receiver.receive(holder);
@@ -174,9 +169,6 @@ public final class MessageBus {
                     }
                 } else {
                     MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-                    if (headers != null) {
-                        holder.setHeaders(headers);
-                    }
                     Receiver singleReceiver = subscription.getRoundRobinIterator().next();
                     try {
                         singleReceiver.receive(holder);

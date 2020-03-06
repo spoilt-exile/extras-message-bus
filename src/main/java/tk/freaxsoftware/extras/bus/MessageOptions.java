@@ -19,6 +19,9 @@
 
 package tk.freaxsoftware.extras.bus;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Message options for optional
  * @author Stanislav Nepochatov
@@ -39,6 +42,12 @@ public class MessageOptions {
     private boolean broadcast;
     
     /**
+     * Message optional headers. Useful to deliver secondary data. 
+     * Accepts only strings.
+     */
+    private Map<String, String> headers;
+    
+    /**
      * Describes behavior of the bus if message is unprocessed.
      */
     private DeliveryPolicy deliveryPolicy;
@@ -55,12 +64,16 @@ public class MessageOptions {
      * @param broadcast broadcast flag;
      * @param deliveryPolicy delivery policy;
      * @param callback callback handler;
+     * @param headers message headers;
      */
-    private MessageOptions(boolean async, boolean broadcast, DeliveryPolicy deliveryPolicy, Callback callback) {
+    private MessageOptions(boolean async, boolean broadcast, 
+            DeliveryPolicy deliveryPolicy, Callback callback, 
+            Map<String, String> headers) {
         this.async = async;
         this.broadcast = broadcast;
         this.deliveryPolicy = deliveryPolicy;
         this.callback = callback;
+        this.headers = headers != null ? headers : new HashMap<>();
     }
 
     public boolean isAsync() {
@@ -77,6 +90,14 @@ public class MessageOptions {
 
     public void setBroadcast(boolean broadcast) {
         this.broadcast = broadcast;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
     public DeliveryPolicy getDeliveryPolicy() {
@@ -118,27 +139,30 @@ public class MessageOptions {
     
     /**
      * Builds defatul message options: sync point-to-point message without callback.
+     * @param headers message headers;
      * @return message options instance;
      */
-    public static MessageOptions defaultOptions() {
-        return new MessageOptions(false, false, DeliveryPolicy.VOID, null);
+    public static MessageOptions defaultOptions(Map<String, String> headers) {
+        return new MessageOptions(false, false, DeliveryPolicy.VOID, null, headers);
     }
     
     /**
      * Builds message options for notifications: async, broadcast, with storage for unprocessed messages.
+     * @param headers message headers;
      * @return message options instance;
      */
-    public static MessageOptions notificationOptions() {
-        return new MessageOptions(true, true, DeliveryPolicy.STORE, null);
+    public static MessageOptions notificationOptions(Map<String, String> headers) {
+        return new MessageOptions(true, true, DeliveryPolicy.STORE, null, headers);
     }
     
     /**
      * Builds message options for call to another system: sync, point-to-point, ensured with callback.
+     * @param headers message headers;
      * @param callback message callback;
      * @return message options instance;
      */
-    public static MessageOptions callOptions(Callback callback) {
-        return new MessageOptions(false, false, DeliveryPolicy.THROW, callback);
+    public static MessageOptions callOptions(Map<String, String> headers, Callback callback) {
+        return new MessageOptions(false, false, DeliveryPolicy.THROW, callback, headers);
     }
     
     /**
@@ -155,7 +179,7 @@ public class MessageOptions {
          * Default constructor. Will build default options.
          */
         private Builder() {
-            instance = MessageOptions.defaultOptions();
+            instance = MessageOptions.defaultOptions(null);
         }
         
         /**
@@ -203,6 +227,27 @@ public class MessageOptions {
                 throw new IllegalStateException("Can't broadcast message with callback!");
             }
             this.instance.setBroadcast(true);
+            return this;
+        }
+        
+        /**
+         * Put header in the message.
+         * @param name name of header;
+         * @param value value of header;
+         * @return builder instance;
+         */
+        public Builder header(String name, String value) {
+            this.instance.getHeaders().put(name, value);
+            return this;
+        }
+        
+        /**
+         * Put header in the message.
+         * @param headerMap map of headers;
+         * @return builder instance;
+         */
+        public Builder headers(Map<String, String> headerMap) {
+            this.instance.getHeaders().putAll(headerMap);
             return this;
         }
        

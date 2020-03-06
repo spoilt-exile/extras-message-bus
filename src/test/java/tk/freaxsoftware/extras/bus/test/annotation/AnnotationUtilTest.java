@@ -49,14 +49,14 @@ public class AnnotationUtilTest {
     
     @Test
     public void testMessage() {
-        MessageBus.fire(TestReceiver.TEST_MESSAGE, null, null, MessageOptions.Builder.newInstance().deliveryCall().callback((res) -> {
+        MessageBus.fire(TestReceiver.TEST_MESSAGE, null, MessageOptions.Builder.newInstance().deliveryCall().callback((res) -> {
             Assert.notNull(res.getContent());
         }).build());
     }
     
     @Test(expected = NoSubscriptionMessageException.class)
     public void testMessageError() {
-        MessageBus.fire(TestReceiver.TEST_MESSAGE_ERROR, null, null, MessageOptions.Builder.newInstance().deliveryCall().callback((res) -> {
+        MessageBus.fire(TestReceiver.TEST_MESSAGE_ERROR, null, MessageOptions.Builder.newInstance().deliveryCall().callback((res) -> {
             Assert.notNull(res.getContent());
         }).build());
     }
