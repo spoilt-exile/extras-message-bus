@@ -182,6 +182,9 @@ public final class MessageBus {
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
                 }
+                if (holder.getOptions().getCallback() != null) {
+                    holder.getOptions().getCallback().callback(holder.getResponse());
+                }
             });
         } else {
             if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
