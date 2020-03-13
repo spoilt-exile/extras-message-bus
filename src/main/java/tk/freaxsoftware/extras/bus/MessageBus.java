@@ -149,7 +149,7 @@ public final class MessageBus {
      * @param options options for message processing;
      */
     public static <T> void fire(final String topic, final T content, final MessageOptions options) {
-        init();
+        MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
         if (options == null) {
             throw new IllegalArgumentException("Message options can't be null!");
         }
@@ -157,33 +157,35 @@ public final class MessageBus {
         Subscription subscription = getSubscription(topic);
         if (subscription != null) {
             init.getExecutor().execute(() -> {
-                if (options.isBroadcast()) {
-                    MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-                    for (Receiver receiver: subscription.getReceivers()) {
-                        try {
-                            receiver.receive(holder);
-                        } catch (Exception ex) {
-                            LOGGER.error("Receiver " + receiver.getClass().getName() + " for topic " + topic + " throws exception", ex);
-                            holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
-                        }
-                    }
-                } else {
-                    MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-                    Receiver singleReceiver = subscription.getRoundRobinIterator().next();
-                    try {
-                        singleReceiver.receive(holder);
-                    } catch (Exception ex) {
-                        LOGGER.error("Receiver " + singleReceiver.getClass().getName() + " for topic " + topic + " throws exception", ex);
-                        holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
-                    }
-                    if (options.getCallback() != null) {
-                        options.getCallback().callback(holder.getResponse());
-                    }
-                }
+                internalFire(holder);
             }, options.isAsync());
         } else {
             if (options.getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", topic));
+            }
+        }
+    }
+    
+    /**
+     * Internal fire method to submit message holder to bus.
+     * @param holder message holder to process; 
+     */
+    public static void internalFire(MessageHolder holder) {
+        init();
+        Subscription subscription = getSubscription(holder.getTopic());
+        if (subscription != null) {
+            subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
+                try {
+                    rc.receive(holder);
+                } catch (Exception ex) {
+                    LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
+                    holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
+                    holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
+                }
+            });
+        } else {
+            if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
+                throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
             }
         }
     }

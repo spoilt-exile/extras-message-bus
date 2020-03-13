@@ -49,6 +49,7 @@ public class MessageBusTest {
     private static final String RES_MULTIPLIE = "MessageTest.Arg.RES";
     
     private static final String EXCEPTION_CLASS = "java.lang.Exception";
+    private static final String EXCEPTION_MESSAGE = "Testing message";
     
     private static final String ROUND_ROBIN_MESSAGE = "Round.Robin.Test";
     
@@ -59,7 +60,7 @@ public class MessageBusTest {
     public void setUp() throws ReceiverRegistrationException {
         MessageBus.addSubscription(EMPTY_MESSAGE, (MessageHolder holder) -> {
             logger.debug("empty message received, throwing exception");
-            throw new Exception(EXCEPTION_CLASS);
+            throw new Exception(EXCEPTION_MESSAGE);
         });
         MessageBus.addSubscription(EMPTY_MESSAGE, (MessageHolder holder) -> {
             assertEquals(holder.getTopic(), EMPTY_MESSAGE);
@@ -95,7 +96,9 @@ public class MessageBusTest {
         MessageBus.fire(EMPTY_MESSAGE, null, MessageOptions.Builder.newInstance().callback((result) -> {
             assertTrue(result.getHeaders().containsKey(GlobalCons.G_EXCEPTION_HEADER));
             String last = (String) result.getHeaders().get(GlobalCons.G_EXCEPTION_HEADER);
+            String lastMessage = (String) result.getHeaders().get(GlobalCons.G_EXCEPTION_MESSAGE_HEADER);
             assertEquals(last, EXCEPTION_CLASS);
+            assertEquals(lastMessage, EXCEPTION_MESSAGE);
         }).build());
     }
     

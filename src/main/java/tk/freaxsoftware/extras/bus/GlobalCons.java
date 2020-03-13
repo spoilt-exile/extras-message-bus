@@ -43,4 +43,9 @@ public class GlobalCons {
      * Global header for exception class. May be overrided by last executed receiver.
      */
     public static final String G_EXCEPTION_HEADER = "Global.Headers.Exception";
+    
+    /**
+     * Global header for exception message. May be overrided by last executed receiver.
+     */
+    public static final String G_EXCEPTION_MESSAGE_HEADER = "Global.Headers.ExceptionMessage";
 }

@@ -18,6 +18,7 @@
  */
 package tk.freaxsoftware.extras.bus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -80,5 +81,21 @@ public class Subscription {
             roundRobinIterator = new RoundRobinIterator<>(receivers);
         }
         return roundRobinIterator;
+    }
+    
+    /**
+     * Get list of the receivers depending on mode.
+     * @param isBroadcast broadcast flag of the message.
+     * @return list with multiple receivers in case of broadcast or 
+     * list with single receiver in case of point-to-point message.
+     */
+    public List<Receiver> getReceiversByMode(Boolean isBroadcast) {
+        return isBroadcast ? receivers : wrapRoundRobin();
+    }
+    
+    private List<Receiver> wrapRoundRobin() {
+        List<Receiver> receiverList = new ArrayList(1);
+        receiverList.add(getRoundRobinIterator().next());
+        return receiverList;
     }
 }
