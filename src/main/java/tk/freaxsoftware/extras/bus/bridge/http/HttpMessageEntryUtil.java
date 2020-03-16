@@ -38,7 +38,7 @@ public class HttpMessageEntryUtil {
      * @throws ClassNotFoundException 
      */
     public HttpMessageEntry deserialize(JsonObject object) throws ClassNotFoundException {
-        String messageId = object.get("messageId").getAsString();
+        String messageId = object.get("topic").getAsString();
         Map<String, String> headers = gson.fromJson(object.get("headers"), new TypeToken<Map<String, String>>(){}.getType());
         HttpMessageEntry entry;
         if (object.has("fullTypeName")) {
