@@ -35,6 +35,11 @@ public enum MessageStatus {
     PROCESSING,
     
     /**
+     * Message processed by receiver and now processing callback.
+     */
+    CALLBACK,
+    
+    /**
      * Message processing is finished without errors.
      */
     FINISHED,
