@@ -160,7 +160,7 @@ public final class MessageBus {
                 internalFire(holder);
             }, options.isAsync());
         } else {
-            if (options.getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
+            if (options.getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", topic));
             }
         }
@@ -187,7 +187,7 @@ public final class MessageBus {
                 }
             });
         } else {
-            if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.THROW) {
+            if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
             }
         }

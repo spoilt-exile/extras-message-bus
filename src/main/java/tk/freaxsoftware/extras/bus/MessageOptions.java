@@ -129,7 +129,7 @@ public class MessageOptions {
         /**
          * Throw an exception if no subscribers available.
          */
-        THROW,
+        CALL,
         
         /**
          * Store messages in storage until subscriber unavailable.
@@ -162,7 +162,7 @@ public class MessageOptions {
      * @return message options instance;
      */
     public static MessageOptions callOptions(Map<String, String> headers, Callback callback) {
-        return new MessageOptions(false, false, DeliveryPolicy.THROW, callback, headers);
+        return new MessageOptions(false, false, DeliveryPolicy.CALL, callback, headers);
     }
     
     /**
@@ -261,11 +261,11 @@ public class MessageOptions {
         }
         
         /**
-         * Use THROW delivery policy. Fit for timed operations where response required.
+         * Use CALL delivery policy. Fit for timed operations where response required.
          * @return builder instance.
          */
         public Builder deliveryCall() {
-            this.instance.setDeliveryPolicy(DeliveryPolicy.THROW);
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
             return this;
         }
         
