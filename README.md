@@ -2,10 +2,10 @@ MessageBus
 ============
 
 Basic message bus service. Suport sync and async message delivery. Point-to-point 
-messaging with round robin and broadcasting. Message callbacks to delivery results 
+messaging with round-robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *4.2*
+**Current version:** *5.0*
 
 ## Usage
 
@@ -20,11 +20,13 @@ MessageBus.addSubscription("Test.Message", (message) -> {
 Bulk subscription possible by `addSubscriptions(stringArray, receiver)`
 
 Each message contains:
- * `messageId` - id of the message destination (address);
+ * `id` - unique id of the message;
+ * `status` - status of message processing;
+ * `topic` - message destination (address);
  * `headers` - string-to-string map for additional data;
  * `content` - any object (class payload should be familiar to server and subscriber);
 
-Also message can hold response but it's only available to callback. See below.
+Also message can hold response but it's only available to callback implementation. See below.
 
 **To fire message:**
 
@@ -33,23 +35,22 @@ Also message can hold response but it's only available to callback. See below.
 MessageBus.fire("Test.Empty", "SomeString");
 
 //Sync, point-to-point, no callback, no ensure, headers, no content
-MessageBus.fire("Test.Empty2", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), null);
+MessageBus.fire("Test.Empty2", MessageOptions.Builder.newInstance().header("SomeHeader", "value").build());
 
 //Async, point-to-point, no callback, no ensure, headers, Long content
-MessageBus.fire("Test.Empty3", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), 
-new Long(22), MessageOptions.Builder.newInstanc().async().build());
+MessageBus.fire("Test.Empty3", new Long(22), MessageOptions.Builder.newInstanc().header("SomeHeader", "value").async().build());
 
 //Async, point-to-point, callback, no ensure, headers, Long content
-MessageBus.fire("Test.Empty4", HeaderBuilder.newInstance().putArg("SomeHeader", "value").build(), 
-new Long(22), MessageOptions.Builder.newInstanc().async().callback((response) -> 
-{System.out.println("Messsage callback after procession!")}).build());
+MessageBus.fire("Test.Empty4", new Long(22), MessageOptions.Builder.newInstanc().header("SomeHeader", "value").async().callback((response) -> {
+    System.out.println("Messsage callback after procession!")
+}).build());
 ```
 
 ##### Available options for messages:
 1. Sync or async mode - message may be processed in the same or in another thread. Sync mode will hang current thread.
 2. Broadcast or point-to-point - message may be delivered for all subscribers or for just one (round-robin).
 3. Callback - some logic which will be executed only after message processing. Success not guaranteed. Callback not available for broadcast messages.
-4. Ensure - make message bus to check if anyone listening for this message. If no subscribers then exception will be throwned.
+4. Delivery policy - controls importance of the message: `VOID` - message for testing, bus will not 
 
 `MessageOptions` instance could be reused.
 
