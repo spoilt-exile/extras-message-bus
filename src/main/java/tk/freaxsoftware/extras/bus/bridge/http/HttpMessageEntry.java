@@ -22,7 +22,9 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Objects;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageStatus;
+import tk.freaxsoftware.extras.bus.ResponseHolder;
 
 /**
  * HTTP message entry. Used for incoming message and it's response.
@@ -35,6 +37,11 @@ public class HttpMessageEntry<T> {
      * Unique id of the message.
      */
     private String id;
+    
+    /**
+     * Unique id of the transaction.
+     */
+    private String trxId;
     
     /**
      * Date of message creation.
@@ -76,10 +83,44 @@ public class HttpMessageEntry<T> {
      */
     private T content;
     
+    /**
+     * Default constructor.
+     */
     public HttpMessageEntry() {}
+    
+    protected HttpMessageEntry(MessageHolder<T> holder) {
+        this.id = holder.getId();
+        this.trxId = holder.getTrxId();
+        this.created = holder.getCreated();
+        this.updated = holder.getUpdated();
+        this.status = holder.getStatus();
+        this.topic = holder.getTopic();
+        this.headers = holder.getHeaders();
+        this.content = holder.getContent();
+        if (this.content != null) {
+            this.fullTypeName = this.content.getClass().getCanonicalName();
+            this.typeName = this.content.getClass().getSimpleName();
+        }
+    }
 
-    public HttpMessageEntry(String messageId, Map<String, String> headers, T content) {
-        this.topic = messageId;
+    /**
+     * Full parametrick constructor for deserialization.
+     * @param id id of message;
+     * @param trxId id of transaction;
+     * @param created date of message creation;
+     * @param updated date of message last update;
+     * @param status status of message;
+     * @param topic message topic;
+     * @param headers message headers (key-value map);
+     * @param content content of the message;
+     */
+    public HttpMessageEntry(String id, String trxId, ZonedDateTime created, ZonedDateTime updated, MessageStatus status, String topic, Map<String, String> headers, T content) {
+        this.id = id;
+        this.trxId = trxId;
+        this.created = created;
+        this.updated = updated;
+        this.status = status;
+        this.topic = topic;
         this.headers = headers;
         this.content = content;
         if (this.content != null) {
@@ -94,6 +135,14 @@ public class HttpMessageEntry<T> {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
     }
 
     public ZonedDateTime getCreated() {
@@ -183,5 +232,34 @@ public class HttpMessageEntry<T> {
             return false;
         }
         return true;
+    }
+    
+    public MessageHolder<T> toMessageHolder() {
+        MessageHolder<T> holder = new MessageHolder<>();
+        holder.setId(this.getId());
+        holder.setTrxId(this.getTrxId());
+        holder.setCreated(this.getCreated());
+        holder.setUpdated(this.getUpdated());
+        holder.setStatus(this.getStatus());
+        holder.setTopic(this.getTopic());
+        holder.setHeaders(this.getHeaders());
+        holder.setContent(this.getContent());
+        holder.setResponse(new ResponseHolder());
+        return holder;
+    }
+    
+    public void initAsResponse(MessageHolder holder, ResponseHolder<T> response) {
+        this.id = holder.getId();
+        this.trxId = holder.getTrxId();
+        this.created = holder.getCreated();
+        this.updated = holder.getUpdated();
+        this.status = holder.getStatus();
+        this.topic = holder.getTopic();
+        this.headers = response.getHeaders();
+        this.content = response.getContent();
+        if (this.content != null) {
+            this.fullTypeName = this.content.getClass().getCanonicalName();
+            this.typeName = this.content.getClass().getSimpleName();
+        }
     }
 }

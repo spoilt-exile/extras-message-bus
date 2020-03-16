@@ -150,20 +150,10 @@ public final class MessageBus {
      */
     public static <T> void fire(final String topic, final T content, final MessageOptions options) {
         MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-        if (options == null) {
-            throw new IllegalArgumentException("Message options can't be null!");
-        }
         LOGGER.info("Message with topic {} fired to bus", topic);
-        Subscription subscription = getSubscription(topic);
-        if (subscription != null) {
-            init.getExecutor().execute(() -> {
-                internalFire(holder);
-            }, options.isAsync());
-        } else {
-            if (options.getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
-                throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", topic));
-            }
-        }
+        init.getExecutor().execute(() -> {
+            internalFire(holder);
+        }, options.isAsync());
     }
     
     /**
@@ -172,18 +162,27 @@ public final class MessageBus {
      */
     public static void internalFire(MessageHolder holder) {
         init();
+        if (holder.getOptions() == null) {
+            throw new IllegalArgumentException("Message options can't be null!");
+        }
         Subscription subscription = getSubscription(holder.getTopic());
         if (subscription != null) {
+            holder.setStatus(MessageStatus.PROCESSING);
             subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
                 try {
                     rc.receive(holder);
+                    if (holder.getOptions().getCallback() != null) {
+                        holder.setStatus(MessageStatus.CALLBACK);
+                        holder.getOptions().getCallback().callback(holder.getResponse());
+                    }
+                    holder.setStatus(MessageStatus.FINISHED);
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
-                }
-                if (holder.getOptions().getCallback() != null) {
-                    holder.getOptions().getCallback().callback(holder.getResponse());
+                    if (holder.getStatus() != MessageStatus.FINISHED) {
+                        holder.setStatus(MessageStatus.ERROR);
+                    }
                 }
             });
         } else {

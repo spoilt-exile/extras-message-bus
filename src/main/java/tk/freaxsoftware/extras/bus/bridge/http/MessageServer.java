@@ -27,7 +27,9 @@ import spark.Request;
 import spark.Response;
 import static spark.Spark.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
 
 /**
@@ -46,7 +48,7 @@ public class MessageServer {
     /**
      * Gson instance.
      */
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonUtils.getGson();
     
     /**
      * Deploy spark endpoint for message listening. It will config spark if config not nested.
@@ -67,24 +69,22 @@ public class MessageServer {
             entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
             LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();
+            MessageOptions options;
+            MessageHolder holder = entry.toMessageHolder();
             switch (mode) {
                 case BROADCAST:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().async().broadcast().headers(entry.getHeaders()).build());
+                    options = MessageOptions.Builder.newInstance().async().broadcast().headers(entry.getHeaders()).build();
                     break;
                 case CALLBACK:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().headers(entry.getHeaders()).callback((messageResponse) -> {
-                        response.setTopic(entry.getTopic());
-                        response.setHeaders(messageResponse.getHeaders());
-                        if (messageResponse.getContent() != null) {
-                            response.setFullTypeName(messageResponse.getContent().getClass().getCanonicalName());
-                            response.setTypeName(messageResponse.getContent().getClass().getSimpleName());
-                            response.setContent(messageResponse.getContent());
-                        }
-                    }).build());
+                    options = MessageOptions.Builder.newInstance().headers(entry.getHeaders()).callback((messageResponse) -> {
+                        response.initAsResponse(holder, messageResponse);
+                    }).build();
                     break;
                 default:
-                    MessageBus.fire(entry.getTopic(), entry.getContent(), MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build());
+                    options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
             }
+            holder.setOptions(options);
+            MessageBus.internalFire(holder);
             if (response.getTopic() != null) {
                 return response;
             } else {

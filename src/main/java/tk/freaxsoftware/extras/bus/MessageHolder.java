@@ -37,6 +37,11 @@ public class MessageHolder<T> {
     private String id;
     
     /**
+     * Unique id of the transaction.
+     */
+    private String trxId;
+    
+    /**
      * Date of message creation.
      */
     private ZonedDateTime created;
@@ -80,8 +85,9 @@ public class MessageHolder<T> {
      * Default constructor.
      */
     public MessageHolder() {
-        this.headers = new HashMap<>();
         this.id = UUID.randomUUID().toString();
+        this.trxId = UUID.randomUUID().toString();
+        this.headers = new HashMap<>();
         this.created = ZonedDateTime.now();
         this.status = MessageStatus.NEW;
     }
@@ -107,6 +113,14 @@ public class MessageHolder<T> {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
     }
 
     public ZonedDateTime getCreated() {

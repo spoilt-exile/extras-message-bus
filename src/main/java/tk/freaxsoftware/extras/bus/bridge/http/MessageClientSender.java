@@ -92,7 +92,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         if (message.getContent() == this) {
             return;
         }
-        HttpMessageEntry entry = new HttpMessageEntry(message.getTopic(), message.getHeaders(), message.getContent());
+        HttpMessageEntry entry = new HttpMessageEntry(message);
         setupEntry(message, entry);
         LOGGER.debug(String.format("Sending message %s to node %s on port %d", message.getTopic(), config.getAddress(), config.getPort()));
         HttpMessageEntry response = sendEntry(config.getAddress(), config.getPort(), entry);

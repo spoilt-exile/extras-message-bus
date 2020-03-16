@@ -33,6 +33,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 
 /**
  * Abstract HTTP sender implements single method for sending by http.
@@ -53,7 +54,7 @@ public abstract class AbstractHttpSender {
     /**
      * Gson instance.
      */
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonUtils.getGson();
     
     /**
      * Send message entry over HTTP to specified address and port.
