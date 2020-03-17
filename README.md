@@ -79,6 +79,18 @@ Example:
             "TEST",
             "TEST2",
         ]
+    },
+    "storage": { //Config for message storage and redelivery
+        "storageClass": "org.test.MessageStorageImpl", //Path to class to storage implementation;
+        "storageClassArgs": { //Key-value holder for data needed by strorage to work (optional);
+            "dbName": "test1",
+            "dbUser": "user",
+            "dbPassword": "pass"
+        }
+        "redeliveryPeriod": 120, //Period in seconds between redelivery attempts;
+        "topicPattern": "Test.*", //Pattern of topic to store messages;
+        "storeCalls": true, //Store messages with delivery policy `CALL`;
+        "removeProcessed": false //Removes processed messages;
     }
 }
 ```
@@ -87,12 +99,7 @@ Central node should config only `bridgeServer` but other nodes should config bot
 
 Bridge server and client config can be overrided by system properties if needed. Following properties available by now: `bridge.server.hearbeat`, `bridge.server.port`, `bridge.client.address` and `bridge.client.port`;
 
-Message devlivery option a bit simplified in HTTP briding:
- * `SIMPLE` - async point-to-point message without callback;
- * `BROADCAST` - async broadcast message without callback;
- * `CALLBACK` - sync message with callback on central node side;
-
-Such mode will be choosed in auto mode.
+From 5.0 message bus supports storing messages for redelivery and logging. It provides interface `MessageStorage` for further implementation. There is only one built-in implementation of storage: `tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage` but it's not recommened for production use.
 
 ## Annotation driven receivers
 
