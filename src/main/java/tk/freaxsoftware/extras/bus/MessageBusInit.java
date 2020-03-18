@@ -33,6 +33,8 @@ import tk.freaxsoftware.extras.bus.config.MessageBusConfig;
 import tk.freaxsoftware.extras.bus.config.PropertyConfigProcessor;
 import tk.freaxsoftware.extras.bus.config.pool.PoolType;
 import tk.freaxsoftware.extras.bus.config.pool.ThreadPoolConfig;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptor;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptorFactory;
 
 /**
  * Message bus init service. Reads configuration and do all routine.
@@ -51,6 +53,11 @@ public class MessageBusInit {
      * Message bus config instance.
      */
     private volatile MessageBusConfig config;
+    
+    /**
+     * Storage interceptor.
+     */
+    private StorageInterceptor interceptor;
     
     /**
      * Inits message bus config and additional components. Trying to read 
@@ -100,6 +107,7 @@ public class MessageBusInit {
             }
         }
         
+        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
     }
     
     private MessageBusConfig readDefault() {
@@ -128,5 +136,9 @@ public class MessageBusInit {
 
     public BlockExecutor getExecutor() {
         return executor;
+    }
+
+    public StorageInterceptor getInterceptor() {
+        return interceptor;
     }
 }

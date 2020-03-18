@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.MessageStatus;
 
 /**
@@ -42,7 +43,8 @@ public class InMemoryMessageStorage implements MessageStorage {
     @Override
     public Set<MessageHolder> getUnprocessedMessages() {
         return storage.entrySet().stream()
-                .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR)
+                .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR 
+                        && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
                 .map(entry -> entry.getValue()).collect(Collectors.toSet());
     }
 

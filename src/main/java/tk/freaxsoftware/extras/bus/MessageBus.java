@@ -166,6 +166,7 @@ public final class MessageBus {
             throw new IllegalArgumentException("Message options can't be null!");
         }
         Subscription subscription = getSubscription(holder.getTopic());
+        init.getInterceptor().storeMessage(holder);
         if (subscription != null) {
             holder.setStatus(MessageStatus.PROCESSING);
             subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
@@ -176,17 +177,20 @@ public final class MessageBus {
                         holder.getOptions().getCallback().callback(holder.getResponse());
                     }
                     holder.setStatus(MessageStatus.FINISHED);
+                    init.getInterceptor().storeProcessedMessage(holder);
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
                     if (holder.getStatus() != MessageStatus.FINISHED) {
                         holder.setStatus(MessageStatus.ERROR);
+                        init.getInterceptor().storeMessage(holder);
                     }
                 }
             });
         } else {
             if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
+                init.getInterceptor().storeMessage(holder);
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
             }
         }

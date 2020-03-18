@@ -22,6 +22,7 @@ package tk.freaxsoftware.extras.bus.config;
 import tk.freaxsoftware.extras.bus.config.http.ClientConfig;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
 import tk.freaxsoftware.extras.bus.config.pool.ThreadPoolConfig;
+import tk.freaxsoftware.extras.bus.storage.StorageConfig;
 
 /**
  * Message bus main config class.
@@ -34,6 +35,8 @@ public class MessageBusConfig {
     private ServerConfig bridgeServer;
     
     private ClientConfig bridgeClient;
+    
+    private StorageConfig storage;
 
     public ThreadPoolConfig getThreadPoolConfig() {
         return threadPoolConfig;
@@ -57,5 +60,13 @@ public class MessageBusConfig {
 
     public void setBridgeClient(ClientConfig bridgeClient) {
         this.bridgeClient = bridgeClient;
+    }
+
+    public StorageConfig getStorage() {
+        return storage;
+    }
+
+    public void setStorage(StorageConfig storage) {
+        this.storage = storage;
     }
 }

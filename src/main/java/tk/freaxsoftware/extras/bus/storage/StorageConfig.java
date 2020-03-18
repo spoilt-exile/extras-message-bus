@@ -108,4 +108,10 @@ public class StorageConfig {
         this.removeProcessed = removeProcessed;
     }
     
+    public boolean isValid() {
+        return (storageClass != null && !storageClass.isBlank()) && redeliveryPeriod != null 
+                && (topicPattern != null && !topicPattern.isBlank()) 
+                && storeCalls != null && removeProcessed != null;
+    }
+   
 }
