@@ -35,11 +35,10 @@ public interface MessageStorage {
     void saveMessage(MessageHolder message);
     
     /**
-     * Get set of messages by message id (topic) for further processing.
-     * @param topic message topic to search;
+     * Get set of messages for further processing.
      * @return set of messages;
      */
-    Set<MessageHolder> getUnprocessedMessages(String topic);
+    Set<MessageHolder> getUnprocessedMessages();
     
     /**
      * Removes message from the storage.

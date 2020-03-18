@@ -40,7 +40,7 @@ public class InMemoryMessageStorage implements MessageStorage {
     }
 
     @Override
-    public Set<MessageHolder> getUnprocessedMessages(String topic) {
+    public Set<MessageHolder> getUnprocessedMessages() {
         return storage.entrySet().stream()
                 .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR)
                 .map(entry -> entry.getValue()).collect(Collectors.toSet());
