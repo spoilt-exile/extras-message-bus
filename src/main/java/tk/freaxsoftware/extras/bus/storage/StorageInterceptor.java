@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2015 Freax Software
+ * Copyright (C) 2020 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
