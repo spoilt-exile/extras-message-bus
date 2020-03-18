@@ -24,29 +24,26 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
 /**
  * Stores messages to process them later.
  * @author Stanislav Nepochatov
+ * @since 5.0
  */
 public interface MessageStorage {
     
     /**
      * Saves message to storage with key.
      * @param message unprocessed message;
-     * @param key id of the receiver which is temporary unavailable (may be null);
      */
-    void saveMessage(MessageHolder message, String key);
+    void saveMessage(MessageHolder message);
     
     /**
-     * Get set of messages by message id (topic).
-     * @param messageId id to search;
+     * Get set of messages by message id (topic) for further processing.
+     * @param topic message topic to search;
      * @return set of messages;
      */
-    Set<MessageHolder> getMessages(String messageId);
+    Set<MessageHolder> getUnprocessedMessages(String topic);
     
     /**
-     * Get set of messages by message id and key.
-     * @param messageId id to search;
-     * @param key id of the receiver;
-     * @return set of messages;
+     * Removes message from the storage.
+     * @param id of the message to delete;
      */
-    Set<MessageHolder> getMessagesByKey(String messageId, String key);
-    
+    void removeMessage(String id);
 }
