@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
@@ -34,6 +36,8 @@ import tk.freaxsoftware.extras.bus.MessageOptions;
  * @since 5.0
  */
 public class DefaultStorageInterceptor implements StorageInterceptor {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStorageInterceptor.class);
     
     private final StorageConfig config;
     
@@ -55,7 +59,9 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                 return paramConstructor.newInstance(config.getStorageClassArgs());
             } else {
                 Constructor<MessageStorage> defaultConstructor = storageClass.getConstructor();
-                return defaultConstructor.newInstance();
+                MessageStorage instance = defaultConstructor.newInstance();
+                LOGGER.info("Storage class {} initiated.", config.getStorageClass());
+                return instance;
             }
         } catch (ClassNotFoundException clnfex) {
             throw new StorageInitException(String.format("Storage class %s was not found!", config.getStorageClass()), clnfex);
@@ -72,7 +78,7 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
     public void storeMessage(MessageHolder holder) {
         if (holder.getTopic().matches(config.getTopicPattern())) {
             if (holder.getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.VOID
-                    && (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL && config.getStoreCalls())) {
+                    || (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL && config.getStoreCalls())) {
                 storage.saveMessage(holder);
             }
         }
@@ -100,14 +106,19 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
 
         @Override
         public void run() {
-            Set<MessageHolder> holders = storage.getUnprocessedMessages();
-            for (MessageHolder holder: holders) {
-                MessageBus.internalFire(holder);
-            }
-            try {
-                Thread.sleep(redeliveryPeriod * 1000);
-            } catch (InterruptedException ex) {
-                //Nothing.
+            LOGGER.info("Redelivery job started with period {} seconds", redeliveryPeriod);
+            while (true) {
+                Set<MessageHolder> holders = storage.getUnprocessedMessages();
+                LOGGER.info("Redelivery entries batch size {}", holders.size());
+                for (MessageHolder holder: holders) {
+                    LOGGER.info("Processing message {} to topic {}", holder.getId(), holder.getTopic());
+                    MessageBus.internalFire(holder);
+                }
+                try {
+                    Thread.sleep(redeliveryPeriod * 1000);
+                } catch (InterruptedException ex) {
+                    //Nothing.
+                }
             }
         }
         

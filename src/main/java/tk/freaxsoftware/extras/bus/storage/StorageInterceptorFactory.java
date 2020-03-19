@@ -33,11 +33,14 @@ public class StorageInterceptorFactory {
     public static StorageInterceptor interceptor(StorageConfig config) {
         StorageInterceptor interceptor = null;
         if (config != null && config.isValid()) {
+            LOGGER.info("Trying to init storage class {}", config.getStorageClass());
             try {
                 interceptor = new DefaultStorageInterceptor(config);
             } catch (StorageInitException ex) {
                 LOGGER.error("Error during init of storage, fallback to dummy implementation.", ex);
             }
+        } else {
+            LOGGER.warn("No valid config provided.");
         }
         
         if (interceptor == null) {
