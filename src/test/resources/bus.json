@@ -1,0 +1,13 @@
+{
+    "threadPoolConfig": {
+        "type": "FIXED_POOL",
+        "threadCount": 8
+    },
+    "storage": {
+        "storageClass": "tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage",
+        "redeliveryPeriod": 120,
+        "topicPattern": "Test.*",
+        "storeCalls": true,
+        "removeProcessed": false
+    }
+}
