@@ -189,8 +189,9 @@ public final class MessageBus {
                 }
             });
         } else {
+            holder.setStatus(MessageStatus.ERROR);
+            init.getInterceptor().storeMessage(holder);
             if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
-                init.getInterceptor().storeMessage(holder);
                 throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
             }
         }
