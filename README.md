@@ -50,7 +50,11 @@ MessageBus.fire("Test.Empty4", new Long(22), MessageOptions.Builder.newInstanc()
 1. Sync or async mode - message may be processed in the same or in another thread. Sync mode will hang current thread.
 2. Broadcast or point-to-point - message may be delivered for all subscribers or for just one (round-robin).
 3. Callback - some logic which will be executed only after message processing. Success not guaranteed. Callback not available for broadcast messages.
-4. Delivery policy - controls importance of the message: `VOID` - message for testing, bus will not 
+4. Delivery policy - controls importance of the message: 
+   - `VOID` (set by `deliveryVoid()` method in builder, **default**) - message for testing, bus will not take any action if there is no receivers; 
+   - `CALL` (set by `deliveryCall()` method in builder) - message for calling remote service and getting response, time-sensetive, bus will throw message if there is no recievers;
+   - `STORE` (set by `deliveryNotification()` in builder) - stores messages if there is no receivers at the moment and trying to send them in future;
+5. Redelivery attempts counter - controls how many times message bus redelivery will try to send this message. After all attempts failed bus will store this message and will not try to redeliver it ever again. By default equals `3`;
 
 `MessageOptions` instance could be reused.
 
