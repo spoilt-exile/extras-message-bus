@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 
 /**
  * Default storage interceptor.
@@ -111,8 +112,20 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                 Set<MessageHolder> holders = storage.getUnprocessedMessages();
                 LOGGER.info("Redelivery entries batch size {}", holders.size());
                 for (MessageHolder holder: holders) {
-                    LOGGER.info("Processing message {} to topic {}", holder.getId(), holder.getTopic());
-                    MessageBus.internalFire(holder);
+                    if ((config.getRedeliveryOnlyIfReceiversExists() && MessageBus.isSubscribed(holder.getTopic())) 
+                                || !config.getRedeliveryOnlyIfReceiversExists()) {
+                        if (holder.getRedeliveryCounter() == 0) {
+                            LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 
+                                    holder.getId(), holder.getTopic());
+                            holder.setStatus(MessageStatus.EXHAUSTED);
+                            storeProcessedMessage(holder);
+                            continue;
+                        }
+                        LOGGER.info("Processing message {} to topic {} attempts left {}", 
+                                holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
+                        holder.decreaseRedeliveryCounter();
+                        MessageBus.internalFire(holder);
+                    }
                 }
                 try {
                     Thread.sleep(redeliveryPeriod * 1000);

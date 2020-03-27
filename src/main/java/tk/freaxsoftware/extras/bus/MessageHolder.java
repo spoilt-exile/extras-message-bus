@@ -67,6 +67,11 @@ public class MessageHolder<T> {
     private MessageOptions options;
     
     /**
+     * Copy of redelivery counter from options.
+     */
+    private Integer redeliveryCounter = 0;
+    
+    /**
      * Headers of the message.
      */
     private Map<String, String> headers;
@@ -105,6 +110,9 @@ public class MessageHolder<T> {
         this.options = options;
         this.content = content;
         this.response = new ResponseHolder();
+        if (!Objects.equals(options.getRedeliveryCounter(), this.redeliveryCounter)) {
+            this.redeliveryCounter = options.getRedeliveryCounter();
+        }
     }
 
     public String getId() {
@@ -163,6 +171,14 @@ public class MessageHolder<T> {
         this.options = options;
     }
 
+    public Integer getRedeliveryCounter() {
+        return redeliveryCounter;
+    }
+
+    public void setRedeliveryCounter(Integer redeliveryCounter) {
+        this.redeliveryCounter = redeliveryCounter;
+    }
+    
     public Map<String, String> getHeaders() {
         return headers;
     }
@@ -185,6 +201,10 @@ public class MessageHolder<T> {
 
     public void setResponse(ResponseHolder response) {
         this.response = response;
+    }
+    
+    public void decreaseRedeliveryCounter() {
+        this.redeliveryCounter--;
     }
 
     @Override

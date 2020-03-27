@@ -47,5 +47,10 @@ public enum MessageStatus {
     /**
      * Message processing completed with error or not completed at all.
      */
-    ERROR;
+    ERROR,
+    
+    /**
+     * Message wasn't delivered to receiver and exhaust redelivery attempts.
+     */
+    EXHAUSTED;
 }

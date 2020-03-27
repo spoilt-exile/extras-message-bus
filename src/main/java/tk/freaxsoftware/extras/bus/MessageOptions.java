@@ -53,6 +53,11 @@ public class MessageOptions {
     private DeliveryPolicy deliveryPolicy;
     
     /**
+     * Coutner for redelivery attemtps.
+     */
+    private Integer redeliveryCounter = 3;
+    
+    /**
      * Callback for processing of message results. Can't be used 
      * with conjunction with braodcast messages.
      */
@@ -106,6 +111,14 @@ public class MessageOptions {
 
     public void setDeliveryPolicy(DeliveryPolicy deliveryPolicy) {
         this.deliveryPolicy = deliveryPolicy;
+    }
+
+    public Integer getRedeliveryCounter() {
+        return redeliveryCounter;
+    }
+
+    public void setRedeliveryCounter(Integer redeliveryCounter) {
+        this.redeliveryCounter = redeliveryCounter;
     }
 
     public Callback getCallback() {
@@ -275,6 +288,17 @@ public class MessageOptions {
          */
         public Builder deliveryNotification() {
             this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            return this;
+        }
+        
+        /**
+         * Use STORE delivery policy. Fit for messages which can be processed anytime in future.
+         * @param redeliveryCounter number of attempts for redelivery before droping message;
+         * @return builder instance.
+         */
+        public Builder deliveryNotification(Integer redeliveryCounter) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            this.instance.setRedeliveryCounter(redeliveryCounter);
             return this;
         }
         

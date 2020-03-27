@@ -82,6 +82,15 @@ public final class MessageBus {
     }
     
     /**
+     * Tests if there is subscription for specified topic.
+     * @param topic topic to search;
+     * @return true if there is valid subsciription for topic / false if there is none;
+     */
+    public static boolean isSubscribed(final String topic) {
+        return getSubscription(topic) != null;
+    }
+    
+    /**
      * Unsubscribe following receiver from message topic.
      * @param topic message topic destination;
      * @param receiver the same receiver instance which were using during subscription;

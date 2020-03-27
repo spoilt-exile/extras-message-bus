@@ -45,6 +45,11 @@ public class StorageConfig {
     private Integer redeliveryPeriod;
     
     /**
+     * Prevents from sending redelivery when there is receivers.
+     */
+    private Boolean redeliveryOnlyIfReceiversExists;
+    
+    /**
      * Topic pattern for matched messages to be stored.
      */
     private String topicPattern;
@@ -84,6 +89,14 @@ public class StorageConfig {
         this.redeliveryPeriod = redeliveryPeriod;
     }
 
+    public Boolean getRedeliveryOnlyIfReceiversExists() {
+        return redeliveryOnlyIfReceiversExists;
+    }
+
+    public void setRedeliveryOnlyIfReceiversExists(Boolean redeliveryOnlyIfReceiversExists) {
+        this.redeliveryOnlyIfReceiversExists = redeliveryOnlyIfReceiversExists;
+    }
+
     public String getTopicPattern() {
         return topicPattern;
     }
@@ -111,7 +124,8 @@ public class StorageConfig {
     public boolean isValid() {
         return (storageClass != null && !storageClass.isBlank()) && redeliveryPeriod != null 
                 && (topicPattern != null && !topicPattern.isBlank()) 
-                && storeCalls != null && removeProcessed != null;
+                && storeCalls != null && removeProcessed != null 
+                && redeliveryOnlyIfReceiversExists != null;
     }
    
 }
