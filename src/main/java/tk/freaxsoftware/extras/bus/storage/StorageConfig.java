@@ -18,6 +18,7 @@
  */
 package tk.freaxsoftware.extras.bus.storage;
 
+import java.util.List;
 import java.util.Map;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 
@@ -64,6 +65,16 @@ public class StorageConfig {
      * Remove processed messages from storage.
      */
     private Boolean removeProcessed;
+    
+    /**
+     * Scan period for group of messages.
+     */
+    private Integer groupingScanPeriod;
+    
+    /**
+     * List of entries for message grouping.
+     */
+    private List<GroupEntry> grouping;
 
     public String getStorageClass() {
         return storageClass;
@@ -119,6 +130,22 @@ public class StorageConfig {
 
     public void setRemoveProcessed(Boolean removeProcessed) {
         this.removeProcessed = removeProcessed;
+    }
+
+    public Integer getGroupingScanPeriod() {
+        return groupingScanPeriod;
+    }
+
+    public void setGroupingScanPeriod(Integer groupingScanPeriod) {
+        this.groupingScanPeriod = groupingScanPeriod;
+    }
+
+    public List<GroupEntry> getGrouping() {
+        return grouping;
+    }
+
+    public void setGrouping(List<GroupEntry> grouping) {
+        this.grouping = grouping;
     }
     
     public boolean isValid() {
