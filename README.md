@@ -54,7 +54,7 @@ MessageBus.fire("Test.Empty4", new Long(22), MessageOptions.Builder.newInstanc()
    - `VOID` (set by `deliveryVoid()` method in builder, **default**) - message for testing, bus will not take any action if there is no receivers; 
    - `CALL` (set by `deliveryCall()` method in builder) - message for calling remote service and getting response, time-sensetive, bus will throw message if there is no recievers;
    - `STORE` (set by `deliveryNotification()` in builder) - stores messages if there is no receivers at the moment and trying to send them in future;
-5. Redelivery attempts counter - controls how many times message bus redelivery will try to send this message. After all attempts failed bus will store this message and will not try to redeliver it ever again. By default equals `3`;
+5. Redelivery attempts counter - controls how many times message bus redelivery will try to send this message. After all attempts failed bus will store this message and will not try to redeliver it ever again. By default equals `3`. Redelivery can be set only for `STORE` delivery policy;
 
 `MessageOptions` instance could be reused.
 
@@ -95,6 +95,16 @@ Example:
         "topicPattern": "Test.*", //Pattern of topic to store messages;
         "storeCalls": true, //Store messages with delivery policy `CALL`;
         "removeProcessed": false //Removes processed messages;
+        "redeliveryOnlyIfReceiversExists": true //Redelivery attempt will be performed only if there is registered recievers for topic
+        "groupingScanPeriod": 30 //Period in seconds between scanning for ready to send groupings
+        "grouping": [ //Message grouping config (list of entries)
+            {
+                "singleTopic": "Topic.Single", //Topic to send to single instances
+                "listTopic": "Topic.List", //Topic to receive list of instances
+                "maxSize": 100 //Max size of items in storage before sending
+                "maxTimeInQueue": 300 //Max time in seconds allowed for grouping of a packet of messages
+            }
+        ]
     }
 }
 ```
@@ -103,7 +113,11 @@ Central node should config only `bridgeServer` but other nodes should config bot
 
 Bridge server and client config can be overrided by system properties if needed. Following properties available by now: `bridge.server.hearbeat`, `bridge.server.port`, `bridge.client.address` and `bridge.client.port`;
 
-From 5.0 message bus supports storing messages for redelivery and logging. It provides interface `MessageStorage` for further implementation. There is only one built-in implementation of storage: `tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage` but it's not recommened for production use.
+From 5.0 message bus supports storing messages for redelivery, grouping and logging. It provides interface `MessageStorage` for further implementation. There is only one built-in implementation of storage: `tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage` but it's not recommened for production use.
+
+Redelivery of messages works only for `STORE` delivery policy (notifications). Call messages can be only stored (with response).
+
+Grouping of messages allows to accumulate certain amount of messages and send it in batch. Useful for cases with frequent notifications.
 
 ## Annotation driven receivers
 
