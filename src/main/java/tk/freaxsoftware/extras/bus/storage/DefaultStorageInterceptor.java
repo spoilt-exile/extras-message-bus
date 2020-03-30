@@ -20,10 +20,12 @@ package tk.freaxsoftware.extras.bus.storage;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
@@ -44,12 +46,18 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
     
     private final MessageStorage storage;
     
-    private final ExecutorService threadService = Executors.newSingleThreadExecutor();
+    private final ExecutorService threadService = Executors.newFixedThreadPool(2);
+    
+    private List<GroupingReceiver> grouping;
 
     public DefaultStorageInterceptor(StorageConfig config) throws StorageInitException {
         this.config = config;
         this.storage = initStorage();
+        this.initGrouping();
         this.threadService.submit(new RedeliveryJob(config.getRedeliveryPeriod(), storage));
+        if (config.getGroupingScanPeriod() != null) {
+            this.threadService.submit(new GroupScanJob(config.getGroupingScanPeriod(), grouping));
+        }
     }
     
     private MessageStorage initStorage() throws StorageInitException {
@@ -72,6 +80,12 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
             throw new StorageInitException(String.format("Error during making instance of %s storage class.", config.getStorageClass()), intex);
         } catch (IllegalAccessException | InvocationTargetException ilaex) {
             throw new StorageInitException(String.format("Can't get access to constructor of %s storage class.", config.getStorageClass()), ilaex);
+        }
+    }
+    
+    private void initGrouping() {
+        if (config.getGrouping() != null && !config.getGrouping().isEmpty()) {
+            grouping = config.getGrouping().stream().map(grItem -> new GroupingReceiver(grItem, storage)).collect(Collectors.toList());
         }
     }
 
@@ -129,6 +143,32 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                 }
                 try {
                     Thread.sleep(redeliveryPeriod * 1000);
+                } catch (InterruptedException ex) {
+                    //Nothing.
+                }
+            }
+        }
+        
+    }
+    
+    private class GroupScanJob implements Runnable {
+        
+        private final Integer groupingScanPeriod;
+        
+        private final List<GroupingReceiver> receivers;
+
+        public GroupScanJob(Integer groupingScanPeriod, List<GroupingReceiver> receivers) {
+            this.groupingScanPeriod = groupingScanPeriod;
+            this.receivers = receivers;
+        }
+
+        @Override
+        public void run() {
+            LOGGER.info("Grouping scan job started with period {} seconds", groupingScanPeriod);
+            while (true) {
+                receivers.forEach(rc -> rc.sendMessagesByTimeout());
+                try {
+                    Thread.sleep(groupingScanPeriod * 1000);
                 } catch (InterruptedException ex) {
                     //Nothing.
                 }

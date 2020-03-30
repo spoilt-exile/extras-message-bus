@@ -19,6 +19,7 @@
 package tk.freaxsoftware.extras.bus.storage;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -43,6 +44,15 @@ public class InMemoryMessageStorage implements MessageStorage {
     @Override
     public Set<MessageHolder> getUnprocessedMessages() {
         return storage.entrySet().stream()
+                .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR 
+                        && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
+                .map(entry -> entry.getValue()).collect(Collectors.toSet());
+    }
+    
+    @Override
+    public Set<MessageHolder> getUnprocessedMessagesByTopic(String topic) {
+        return storage.entrySet().stream()
+                .filter(topicEntry -> Objects.equals(topicEntry.getValue().getTopic(), topic))
                 .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR 
                         && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
                 .map(entry -> entry.getValue()).collect(Collectors.toSet());
