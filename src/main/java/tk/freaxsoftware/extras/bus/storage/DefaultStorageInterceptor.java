@@ -86,6 +86,9 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
     private void initGrouping() {
         if (config.getGrouping() != null && !config.getGrouping().isEmpty()) {
             grouping = config.getGrouping().stream().map(grItem -> new GroupingReceiver(grItem, storage)).collect(Collectors.toList());
+            for (GroupingReceiver entry: grouping) {
+                MessageBus.addSubscription(entry.getTopic(), entry);
+            }
         }
     }
 

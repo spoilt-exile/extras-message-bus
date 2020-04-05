@@ -4,10 +4,20 @@
         "threadCount": 8
     },
     "storage": {
-        "storageClass": "tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage",
+        "storageClass": "tk.freaxsoftware.extras.bus.test.storage.TestedInMemoryMessageStorage",
         "redeliveryPeriod": 120,
-        "topicPattern": "Test.*",
+        "topicPattern": "Store.*",
         "storeCalls": true,
-        "removeProcessed": false
+        "removeProcessed": false,
+        "redeliveryOnlyIfReceiversExists": true,
+        "groupingScanPeriod": 100,
+        "grouping": [
+            {
+                "topicSingle": "Store.Group.Single",
+                "topicList": "Store.Group.List",
+                "maxSize": 5,
+                "maxTimeInQueue": 1000
+            }
+        ]
     }
 }

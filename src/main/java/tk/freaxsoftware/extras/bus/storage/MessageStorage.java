@@ -48,6 +48,13 @@ public interface MessageStorage {
     Set<MessageHolder> getUnprocessedMessagesByTopic(String topic);
     
     /**
+     * Get set of message for grouping by topic.
+     * @param topic topic to search;
+     * @return set of the messages by topic;
+     */
+    Set<MessageHolder> getGroupingMessagesByTopic(String topic);
+    
+    /**
      * Removes message from the storage.
      * @param id of the message to delete;
      */

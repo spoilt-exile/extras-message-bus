@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 
 /**
@@ -56,17 +57,25 @@ public class GroupingReceiver implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
+        LOGGER.info("Getting message {}", message.getTopic());
         synchronized(firstMessageCreatedLock) {
             if (firstMessageCreated == null) {
                 firstMessageCreated = message.getCreated();
             }
         }
-        Set<MessageHolder> unprocessed = storage.getUnprocessedMessagesByTopic(configEntry.getTopicSingle());
-        if (unprocessed.size() > configEntry.getMaxSize()) {
+        message.setStatus(MessageStatus.GROUPING);
+        storage.saveMessage(message);
+        Set<MessageHolder> unprocessed = storage.getGroupingMessagesByTopic(configEntry.getTopicSingle());
+        LOGGER.info("Unprocessed: {}", unprocessed.size());
+        if (unprocessed.size() >= configEntry.getMaxSize()) {
             LOGGER.info("Start sending grouped messages to {} since max size of {} exceeded.", 
                     configEntry.getTopicList(), configEntry.getMaxSize());
             internalSend(unprocessed);
         }
+    }
+    
+    public String getTopic() {
+        return this.configEntry.getTopicSingle();
     }
     
     public void sendMessagesByTimeout() {
@@ -74,7 +83,7 @@ public class GroupingReceiver implements Receiver {
         if (ChronoUnit.SECONDS.between(firstMessageCreated, now) > configEntry.getMaxTimeInQueue()) {
             LOGGER.info("Start sending grouped messages to {} since max time in queue of {} passed.", 
                     configEntry.getTopicList(), configEntry.getMaxTimeInQueue());
-            internalSend(storage.getUnprocessedMessagesByTopic(configEntry.getTopicSingle()));
+            internalSend(storage.getGroupingMessagesByTopic(configEntry.getTopicSingle()));
         }
     }
     

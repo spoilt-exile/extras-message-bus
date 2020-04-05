@@ -34,7 +34,7 @@ import tk.freaxsoftware.extras.bus.MessageStatus;
  */
 public class InMemoryMessageStorage implements MessageStorage {
     
-    private final Map<String, MessageHolder> storage = new ConcurrentHashMap<>();
+    protected final Map<String, MessageHolder> storage = new ConcurrentHashMap<>();
 
     @Override
     public void saveMessage(MessageHolder message) {
@@ -54,6 +54,15 @@ public class InMemoryMessageStorage implements MessageStorage {
         return storage.entrySet().stream()
                 .filter(topicEntry -> Objects.equals(topicEntry.getValue().getTopic(), topic))
                 .filter(entry -> entry.getValue().getStatus() == MessageStatus.ERROR 
+                        && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
+                .map(entry -> entry.getValue()).collect(Collectors.toSet());
+    }
+    
+    @Override
+    public Set<MessageHolder> getGroupingMessagesByTopic(String topic) {
+        return storage.entrySet().stream()
+                .filter(topicEntry -> Objects.equals(topicEntry.getValue().getTopic(), topic))
+                .filter(entry -> entry.getValue().getStatus() == MessageStatus.GROUPING 
                         && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
                 .map(entry -> entry.getValue()).collect(Collectors.toSet());
     }

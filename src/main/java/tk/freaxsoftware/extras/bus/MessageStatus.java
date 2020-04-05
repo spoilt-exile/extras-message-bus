@@ -52,5 +52,10 @@ public enum MessageStatus {
     /**
      * Message wasn't delivered to receiver and exhaust redelivery attempts.
      */
-    EXHAUSTED;
+    EXHAUSTED,
+    
+    /**
+     * Message processed but waiting for grouping.
+     */
+    GROUPING;
 }
