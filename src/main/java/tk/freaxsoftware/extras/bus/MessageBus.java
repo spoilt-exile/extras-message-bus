@@ -44,7 +44,7 @@ public final class MessageBus {
     /**
      * Message bus init util.
      */
-    private static final MessageBusInit init = new MessageBusInit();
+    private static MessageBusInit init = new MessageBusInit();
     
     /**
      * Subscribe receiver for message with following topic.
@@ -125,7 +125,8 @@ public final class MessageBus {
      * Clear all subscriptions. This action reset whole message bus. Use with care.
      */
     public static void clearBus() {
-        init();
+        init = new MessageBusInit();
+        init.ensureInit();
         LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
         subscriptions.clear();
     }
@@ -185,7 +186,9 @@ public final class MessageBus {
                         holder.setStatus(MessageStatus.CALLBACK);
                         holder.getOptions().getCallback().callback(holder.getResponse());
                     }
-                    holder.setStatus(MessageStatus.FINISHED);
+                    if (holder.getStatus() != MessageStatus.GROUPING) {
+                        holder.setStatus(MessageStatus.FINISHED);
+                    }
                     init.getInterceptor().storeProcessedMessage(holder);
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
