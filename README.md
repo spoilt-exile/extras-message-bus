@@ -72,8 +72,9 @@ Example:
     "bridgeServer": { //HTTP bridge server config;
         "nested": false,  //Use nested SPARK JAVA server;
         "httpPort": 4444, //Server port (for own SPARK instance);
-        "sparkThreadPoolMaxSize": 16 //Size of SPARK thread pool (for own SPARK instance);
-        "heartbeatRate": 15 //Heart beat rate in seconds;
+        "sparkThreadPoolMaxSize": 16, //Size of SPARK thread pool (for own SPARK instance);
+        "heartbeatRate": 15, //Heart beat rate in seconds;
+        "crossConnections": true //Enable cross connections;
     },
     "bridgeClient": { //Config to establish connection to message bus server;
         "address": "127.0.0.1", //Address of the server;
@@ -82,6 +83,12 @@ Example:
         "additionalSubscriptions": [ //Make additional subscriptions to send on server;
             "TEST",
             "TEST2",
+        ],
+        "crossConnectionsOffer": [ //List of topics to offer cross connections to other peers;
+            "Cross.TEST3"
+        ],
+        "crossConnectionsDemand": [ //List of topics to demand for cross connections from other peers;
+            "Cross.TEST4"
         ]
     },
     "storage": { //Config for message storage and redelivery
@@ -110,6 +117,8 @@ Example:
 ```
 
 Central node should config only `bridgeServer` but other nodes should config both server and client. How it works: central node will establish server and listens for other node subscriptions, when mentioned event happens on central node it will be delivered on subscriber node via HTTP. In order to make node connection reliable also add `heartBeatRate` on central node server config and on subscriber node client config. Heart beat rate should be at lest slightly larger on server side. Node with obselete heart beat will be disconnected by force.
+
+From 5.0 bus introduces cross connections. It allows to establish direct connections between peers. It should be enabled on central node by flag `crossConnections` and each peer can specify topic it's needed by `crossConnectionsDemand` setting. On other side each peer can specify topic it's providing for cross connections by `crossConnectionsOffer` setting.
 
 Bridge server and client config can be overrided by system properties if needed. Following properties available by now: `bridge.server.hearbeat`, `bridge.server.port`, `bridge.client.address` and `bridge.client.port`;
 
