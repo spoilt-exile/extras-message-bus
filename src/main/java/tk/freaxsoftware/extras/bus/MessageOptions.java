@@ -309,7 +309,7 @@ public class MessageOptions {
         public Builder deliveryCall(Callback callback, Integer redeliveryCount) {
             this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
             this.instance.setAsync(false);
-            this.instance.setAsync(false);
+            this.instance.setBroadcast(false);
             this.instance.setCallback(callback);
             this.instance.setRedeliveryCounter(redeliveryCount);
             return this;

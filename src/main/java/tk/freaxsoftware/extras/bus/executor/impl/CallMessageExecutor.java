@@ -48,13 +48,6 @@ public class CallMessageExecutor extends MessageExecutor {
                 Receiver rc = subscription.getRoundRobinIterator().next();
                 try {
                     rc.receive(holder);
-                    if (holder.getOptions().getCallback() != null) {
-                        holder.setStatus(MessageStatus.CALLBACK);
-                        holder.getOptions().getCallback().callback(holder.getResponse());
-                    }
-                    holder.setStatus(MessageStatus.FINISHED);
-                    init.getInterceptor().storeProcessedMessage(holder);
-                    break;
                 } catch (Exception ex) {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
@@ -65,6 +58,13 @@ public class CallMessageExecutor extends MessageExecutor {
                     }
                     tryIndex++;
                 }
+                if (holder.getOptions().getCallback() != null) {
+                    holder.setStatus(MessageStatus.CALLBACK);
+                    holder.getOptions().getCallback().callback(holder.getResponse());
+                }
+                holder.setStatus(MessageStatus.FINISHED);
+                init.getInterceptor().storeProcessedMessage(holder);
+                break;
             }
             if (holder.getStatus() != MessageStatus.FINISHED) {
                 LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 

@@ -24,10 +24,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.Callback;
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.ResponseHolder;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 
@@ -52,6 +54,7 @@ public class MessageBusTest {
     private static final String EXCEPTION_MESSAGE = "Testing message";
     
     private static final String ROUND_ROBIN_MESSAGE = "Round.Robin.Test";
+    private static final String ROUND_ROBIN_REDELIVERY = "Round.Robin.Redelivery";
     
     public MessageBusTest() {
     }
@@ -118,6 +121,15 @@ public class MessageBusTest {
                 MessageBus.fire(ROUND_ROBIN_MESSAGE, inner);
             }
         }
+    }
+    
+    @Test
+    public void testRedeliveryCall() {
+        MessageBus.addSubscription(ROUND_ROBIN_REDELIVERY, new CountDownReceiver(10));
+        MessageBus.addSubscription(ROUND_ROBIN_REDELIVERY, new CountDownReceiver(0));
+        MessageBus.fire(ROUND_ROBIN_REDELIVERY, MessageOptions.Builder.newInstance().deliveryCall((Callback) (ResponseHolder response) -> {
+            assertTrue(response.getHeaders().containsKey(GlobalCons.G_EXCEPTION_HEADER));
+        }, 2).build());
     }
     
     @After
