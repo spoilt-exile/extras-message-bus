@@ -84,7 +84,7 @@ public class MessageServer {
                     options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
             }
             holder.setOptions(options);
-            MessageBus.internalFire(holder);
+            MessageBus.fire(holder);
             if (response.getTopic() != null) {
                 return response;
             } else {

@@ -141,7 +141,7 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                         LOGGER.info("Processing message {} to topic {} attempts left {}", 
                                 holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
                         holder.decreaseRedeliveryCounter();
-                        MessageBus.internalFire(holder);
+                        MessageBus.fire(holder);
                     }
                 }
                 try {

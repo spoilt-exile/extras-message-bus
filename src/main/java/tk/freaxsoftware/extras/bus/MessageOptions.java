@@ -270,6 +270,9 @@ public class MessageOptions {
          */
         public Builder deliveryVoid() {
             this.instance.setDeliveryPolicy(DeliveryPolicy.VOID);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(false);
+            this.instance.setCallback(null);
             return this;
         }
         
@@ -279,6 +282,36 @@ public class MessageOptions {
          */
         public Builder deliveryCall() {
             this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setAsync(false);
+            return this;
+        }
+        
+        /**
+         * Use CALL delivery policy.Fit for timed operations where response required.
+         * @param callback message callback;
+         * @return builder instance.
+         */
+        public Builder deliveryCall(Callback callback) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setBroadcast(false);
+            this.instance.setCallback(callback);
+            return this;
+        }
+        
+        /**
+         * Use CALL delivery policy.Fit for timed operations where response required.
+         * @param callback message callback;
+         * @param redeliveryCount number of redelivery attempts;
+         * @return builder instance.
+         */
+        public Builder deliveryCall(Callback callback, Integer redeliveryCount) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setAsync(false);
+            this.instance.setCallback(callback);
+            this.instance.setRedeliveryCounter(redeliveryCount);
             return this;
         }
         
@@ -288,6 +321,9 @@ public class MessageOptions {
          */
         public Builder deliveryNotification() {
             this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(true);
+            this.instance.setCallback(null);
             return this;
         }
         
@@ -298,6 +334,9 @@ public class MessageOptions {
          */
         public Builder deliveryNotification(Integer redeliveryCounter) {
             this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(true);
+            this.instance.setCallback(null);
             this.instance.setRedeliveryCounter(redeliveryCounter);
             return this;
         }

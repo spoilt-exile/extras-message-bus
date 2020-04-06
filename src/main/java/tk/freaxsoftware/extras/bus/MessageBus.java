@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
+import tk.freaxsoftware.extras.bus.executor.MessageExecutorFactory;
 
 /**
  * Main message bus entry class.
@@ -65,7 +66,7 @@ public final class MessageBus {
         } else {
             subscription.addReceiver(receiver);
         }
-        fire(GlobalCons.G_SUBSCRIBE_TOPIC, receiver, 
+        MessageBus.fire(GlobalCons.G_SUBSCRIBE_TOPIC, receiver, 
                 MessageOptions.Builder.newInstance().async().broadcast()
                         .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
@@ -105,7 +106,7 @@ public final class MessageBus {
                 subscriptions.remove(subscription);
             }
         }
-        fire(GlobalCons.G_UNSUBSCRIBE_TOPIC, receiver, 
+        MessageBus.fire(GlobalCons.G_UNSUBSCRIBE_TOPIC, receiver, 
                 MessageOptions.Builder.newInstance().async().broadcast()
                         .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
@@ -123,12 +124,13 @@ public final class MessageBus {
     
     /**
      * Clear all subscriptions. This action reset whole message bus. Use with care.
+     * @deprecated 
      */
     public static void clearBus() {
-        init = new MessageBusInit();
-        init.ensureInit();
-        LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
-        subscriptions.clear();
+        //init = new MessageBusInit();
+        //init.ensureInit();
+        //LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
+        //subscriptions.clear();
     }
     
     /**
@@ -138,7 +140,7 @@ public final class MessageBus {
      * @param content message content;
      */
     public static <T> void fire(final String topic, final T content) {
-        fire(topic, content, MessageOptions.defaultOptions(null));
+        MessageBus.fire(topic, content, MessageOptions.defaultOptions(null));
     }
     
     /**
@@ -148,7 +150,7 @@ public final class MessageBus {
      * @param options options for message processing;
      */
     public static <T> void fire(final String topic, final MessageOptions options) {
-        fire(topic, null, options);
+        MessageBus.fire(topic, null, options);
     }
     
     /**
@@ -161,52 +163,23 @@ public final class MessageBus {
     public static <T> void fire(final String topic, final T content, final MessageOptions options) {
         MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
         LOGGER.info("Message with topic {} fired to bus", topic);
-        init.getExecutor().execute(() -> {
-            internalFire(holder);
-        }, options.isAsync());
+        fire(holder);
     }
     
     /**
-     * Internal fire method to submit message holder to bus.
+     * Fire method to submit message holder to bus.
      * @param holder message holder to process; 
      */
-    public static void internalFire(MessageHolder holder) {
+    public static void fire(MessageHolder holder) {
         init();
         if (holder.getOptions() == null) {
             throw new IllegalArgumentException("Message options can't be null!");
         }
         Subscription subscription = getSubscription(holder.getTopic());
-        init.getInterceptor().storeMessage(holder);
-        if (subscription != null) {
-            holder.setStatus(MessageStatus.PROCESSING);
-            subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
-                try {
-                    rc.receive(holder);
-                    if (holder.getOptions().getCallback() != null) {
-                        holder.setStatus(MessageStatus.CALLBACK);
-                        holder.getOptions().getCallback().callback(holder.getResponse());
-                    }
-                    if (holder.getStatus() != MessageStatus.GROUPING) {
-                        holder.setStatus(MessageStatus.FINISHED);
-                    }
-                    init.getInterceptor().storeProcessedMessage(holder);
-                } catch (Exception ex) {
-                    LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
-                    holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
-                    holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
-                    if (holder.getStatus() != MessageStatus.FINISHED) {
-                        holder.setStatus(MessageStatus.ERROR);
-                        init.getInterceptor().storeMessage(holder);
-                    }
-                }
-            });
-        } else {
-            holder.setStatus(MessageStatus.ERROR);
-            init.getInterceptor().storeMessage(holder);
-            if (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
-                throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
-            }
-        }
+        holder.setStatus(MessageStatus.PROCESSING);
+        init.getExecutor().execute(
+                MessageExecutorFactory.newExecutor(holder, subscription, init), holder.getOptions().isAsync()
+        );
     }
     
     /**
