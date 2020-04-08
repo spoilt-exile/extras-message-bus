@@ -31,6 +31,8 @@ public class ServerConfig {
     private Integer httpPort;
     
     private Integer sparkThreadPoolMaxSize;
+    
+    private Boolean crossConnections;
 
     public Boolean isNested() {
         return nested;
@@ -62,5 +64,13 @@ public class ServerConfig {
 
     public void setSparkThreadPoolMaxSize(Integer sparkThreadPoolMaxSize) {
         this.sparkThreadPoolMaxSize = sparkThreadPoolMaxSize;
+    }
+
+    public Boolean getCrossConnections() {
+        return crossConnections;
+    }
+
+    public void setCrossConnections(Boolean crossConnections) {
+        this.crossConnections = crossConnections;
     }
 }

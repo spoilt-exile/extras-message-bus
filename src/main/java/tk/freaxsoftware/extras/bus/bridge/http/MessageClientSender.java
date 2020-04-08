@@ -19,6 +19,7 @@
 package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.eclipse.jetty.util.ConcurrentHashSet;
@@ -50,7 +51,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
-    private final Set<String> subscriptions = new ConcurrentHashSet();
+    private final Set<String> subscriptions = ConcurrentHashMap.newKeySet();
     
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
     

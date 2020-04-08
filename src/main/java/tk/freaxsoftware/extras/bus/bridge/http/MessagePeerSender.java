@@ -42,17 +42,17 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     /**
      * Node address.
      */
-    private final String address;
+    protected final String address;
     
     /**
      * Node port.
      */
-    private final Integer port;
+    protected final Integer port;
     
     /**
      * Node subscriptions.
      */
-    private final Set<String> subscriptions;
+    protected final Set<String> subscriptions;
     
     /**
      * Local date of the last heartbeat of the node.
@@ -151,6 +151,9 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
                 && Objects.equals(message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_PORT_HEADER), this.port))) {
             LOGGER.debug(String.format("Sending message %s to subscriber node %s on port %d", message.getTopic(), address, port));
             HttpMessageEntry entry = new HttpMessageEntry(message);
+            if (entry.getTopic().startsWith(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC)) {
+                entry.setTopic(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC);
+            }
             setupMessageMode(message, entry);
             HttpMessageEntry response = sendEntry(address, port, entry);
             if (response != null) {
@@ -158,6 +161,14 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
                 message.getResponse().setHeaders(response.getHeaders());
             }
         }
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public Integer getPort() {
+        return port;
     }
     
 }

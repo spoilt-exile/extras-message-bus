@@ -46,19 +46,44 @@ public class LocalHttpCons {
     public static final String L_HTTP_HEARTBEAT_TOPIC = "Local.Http.Message.HeartBeat";
     
     /**
+     * Message notification to init cross connections.
+     */
+    public static final String L_HTTP_CROSS_NODE_TOPIC = "Local.Http.Message.CrossNode";
+    
+    /**
+     * Notifies when central node detects node with possible cross connection for current node. Dynamic format.
+     */
+    public static final String L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT = "Local.Http.Message.CrossNodeUp.%s:%s";
+    
+    /**
+     * Notifies when central node detects node with possible cross connection for current node.
+     */
+    public static final String L_HTTP_CROSS_NODE_UP_TOPIC = "Local.Http.Message.CrossNodeUp";
+    
+    /**
+     * Notifies when central node detects node with cross connections is down. Dynamic format.
+     */
+    public static final String L_HTTP_CROSS_NODE_DOWN_TOPIC_FORMAT = "Local.Http.Message.CrossNodeDown.%s:%s";
+    
+    /**
+     * Notifies when central node detects node with cross connections is down.
+     */
+    public static final String L_HTTP_CROSS_NODE_DOWN_TOPIC = "Local.Http.Message.CrossNodeDown";
+    
+    /**
      * Local HTTP header for bridge mode.
      */
-    protected static final String L_HTTP_MODE_HEADER = "Local.Http.Header.Mode";
+    public static final String L_HTTP_MODE_HEADER = "Local.Http.Header.Mode";
     
     /**
      * Local HTTP header for node IP address.
      */
-    protected static final String L_HTTP_NODE_IP_HEADER = "Local.Http.Header.NodeIP";
+    public static final String L_HTTP_NODE_IP_HEADER = "Local.Http.Header.NodeIP";
     
     /**
      * Local HTTP header for node port number.
      */
-    protected static final String L_HTTP_NODE_PORT_HEADER = "Local.Http.Header.NodePort";
+    public static final String L_HTTP_NODE_PORT_HEADER = "Local.Http.Header.NodePort";
     
     /**
      * Enum for HTTP bridging mode.

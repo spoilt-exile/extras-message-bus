@@ -31,6 +31,10 @@ public class ClientConfig {
     private Integer heartbeatRate;
     
     private String[] additionalSubscriptions;
+    
+    private String[] crossConnectionsOffer;
+    
+    private String[] crossConnectionsDemand;
 
     public String getAddress() {
         return address;
@@ -62,5 +66,21 @@ public class ClientConfig {
 
     public void setAdditionalSubscriptions(String[] additionalSubscriptions) {
         this.additionalSubscriptions = additionalSubscriptions;
+    }
+
+    public String[] getCrossConnectionsOffer() {
+        return crossConnectionsOffer;
+    }
+
+    public void setCrossConnectionsOffer(String[] crossConnectionsOffer) {
+        this.crossConnectionsOffer = crossConnectionsOffer;
+    }
+
+    public String[] getCrossConnectionsDemand() {
+        return crossConnectionsDemand;
+    }
+
+    public void setCrossConnectionsDemand(String[] crossConnectionsDemand) {
+        this.crossConnectionsDemand = crossConnectionsDemand;
     }
 }

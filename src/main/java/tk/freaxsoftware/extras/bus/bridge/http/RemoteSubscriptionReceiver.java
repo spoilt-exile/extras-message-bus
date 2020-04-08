@@ -65,6 +65,8 @@ public class RemoteSubscriptionReceiver implements Receiver {
                             if (senderEntry.getValue().isBeatExpired(heartBeatMaxAge)) {
                                 LOGGER.warn(String.format("Killing node %s cause expired heartbeat.", senderEntry.getKey()));
                                 MessageBus.removeSubscriptions(senderEntry.getValue().getSubscriptions(), senderEntry.getValue());
+                                MessageBus.removeSubscription(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    senderEntry.getValue().getAddress(), senderEntry.getValue().getPort()), senderEntry.getValue());
                                 senderMap.remove(senderEntry.getKey());
                             }
                         }
@@ -94,6 +96,9 @@ public class RemoteSubscriptionReceiver implements Receiver {
                     LOGGER.info("Creating new subscriber for node.");
                     peerSender = new MessagePeerSender(nodeIp, nodePort);
                     senderMap.put(nodeIp, peerSender);
+                    MessageBus.addSubscription(
+                            String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    nodeIp, nodePort), peerSender);
                 } else {
                     peerSender = senderMap.get(nodeIp);
                 }
@@ -108,6 +113,8 @@ public class RemoteSubscriptionReceiver implements Receiver {
                     if (peerSender2.isEmpty()) {
                         LOGGER.info("Removing subscriber for node.");
                         senderMap.remove(nodeIp);
+                        MessageBus.removeSubscription(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    nodeIp, nodePort), peerSender2);
                     }
                 }
                 break;
