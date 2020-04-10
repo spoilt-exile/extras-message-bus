@@ -51,7 +51,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
-    private final Set<String> subscriptions = ConcurrentHashMap.newKeySet();
+    private final Set<String> subscriptions = new ConcurrentHashSet<>();
     
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
     
@@ -88,7 +88,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     }
 
     @Override
-    public void receive(MessageHolder message) throws Exception {
+    public synchronized void receive(MessageHolder message) throws Exception {
         // Ignore itself.
         if (message.getContent() == this) {
             return;
