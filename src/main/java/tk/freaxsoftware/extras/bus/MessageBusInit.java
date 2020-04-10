@@ -106,12 +106,12 @@ public class MessageBusInit {
                         && config.getBridgeClient().getCrossConnectionsOffer() != null) {
                     MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, clientSender);
                     CrossNode node = new CrossNode();
-                    node.setNodePort(config.getBridgeClient().getPort());
+                    node.setNodePort(config.getBridgeServer().isNested() ? spark.Spark.port() : config.getBridgeServer().getHttpPort());
                     node.setOfferTopics(config.getBridgeClient().getCrossConnectionsOffer());
                     node.setDemandTopics(config.getBridgeClient().getCrossConnectionsDemand());
                     
                     MessageBus.fire(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, node, 
-                            MessageOptions.Builder.newInstance().deliveryNotification().build());
+                            MessageOptions.Builder.newInstance().async().broadcast().build());
                     
                     MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC, new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsDemand()));
                 }
