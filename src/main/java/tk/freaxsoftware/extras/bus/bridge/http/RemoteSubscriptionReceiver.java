@@ -96,9 +96,10 @@ public class RemoteSubscriptionReceiver implements Receiver {
                     LOGGER.info("Creating new subscriber for node.");
                     peerSender = new MessagePeerSender(nodeIp, nodePort);
                     senderMap.put(nodeIp, peerSender);
-                    MessageBus.addSubscription(
-                            String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
-                                    nodeIp, nodePort), peerSender);
+                    String localNodeUp = String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    nodeIp, nodePort);
+                    MessageBus.addSubscription(localNodeUp, peerSender);
+                    peerSender.addSubscription(localNodeUp);
                 } else {
                     peerSender = senderMap.get(nodeIp);
                 }
@@ -110,6 +111,7 @@ public class RemoteSubscriptionReceiver implements Receiver {
                     MessagePeerSender peerSender2 = senderMap.get(nodeIp);
                     peerSender2.removeSubscription(subscriptionId);
                     MessageBus.removeSubscription(subscriptionId, peerSender2);
+                    //TO-DO: add proper logic to exclude node up
                     if (peerSender2.isEmpty()) {
                         LOGGER.info("Removing subscriber for node.");
                         senderMap.remove(nodeIp);
