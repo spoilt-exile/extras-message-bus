@@ -73,10 +73,10 @@ public class MessageServer {
             MessageHolder holder = entry.toMessageHolder();
             switch (mode) {
                 case BROADCAST:
-                    options = MessageOptions.Builder.newInstance().async().broadcast().headers(entry.getHeaders()).build();
+                    options = MessageOptions.Builder.newInstance().deliveryNotification().broadcast().headers(entry.getHeaders()).build();
                     break;
                 case CALLBACK:
-                    options = MessageOptions.Builder.newInstance().headers(entry.getHeaders()).callback((messageResponse) -> {
+                    options = MessageOptions.Builder.newInstance().deliveryCall().headers(entry.getHeaders()).callback((messageResponse) -> {
                         response.initAsResponse(holder, messageResponse);
                     }).build();
                     break;
