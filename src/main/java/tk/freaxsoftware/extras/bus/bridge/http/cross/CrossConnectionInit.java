@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
-import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 
 /**
  * Cross conecction init for clients.
@@ -53,8 +52,6 @@ public class CrossConnectionInit implements Receiver<CrossNode> {
                     node.getNodeIp(), node.getNodePort(), crossConnectionTopics);
             CrossConnectionSender sender = new CrossConnectionSender(node.getNodeIp(), node.getNodePort());
             MessageBus.addSubscriptions(crossConnectionTopics, sender);
-            MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, sender);
-            sender.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC);
             sender.addSubscriptions(new HashSet(Arrays.asList(crossConnectionTopics)));
         }
     }
