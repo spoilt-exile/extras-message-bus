@@ -43,18 +43,18 @@ public class CrossConnectionStorage implements Receiver<CrossNode> {
     @Override
     public void receive(MessageHolder<CrossNode> message) throws Exception {
         CrossNode newNode = message.getContent();
-        newNode.setNodeIp((String) message.getHeaders().get(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT));
+        newNode.setNodeIp((String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER));
         LOGGER.info("Processing node {} port {};", newNode.getNodeIp(), newNode.getNodePort());
         for (CrossNode node: nodes) {
             if (isCrossConnection(newNode.getOfferTopics(), node.getDemandTopics())) {
                 MessageBus.fire(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
                         node.getNodeIp(), node.getNodePort()), newNode, 
-                        MessageOptions.Builder.newInstance().deliveryNotification().pointToPoint().build());
+                        MessageOptions.Builder.newInstance().async().pointToPoint().build());
             }
             if (isCrossConnection(newNode.getDemandTopics(), node.getOfferTopics())) {
                 MessageBus.fire(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
                         newNode.getNodeIp(), newNode.getNodePort()), node, 
-                        MessageOptions.Builder.newInstance().deliveryNotification().pointToPoint().build());
+                        MessageOptions.Builder.newInstance().async().pointToPoint().build());
             }
         }
         nodes.add(newNode);
