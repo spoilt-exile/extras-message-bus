@@ -27,7 +27,11 @@ import spark.Request;
 import spark.Response;
 import static spark.Spark.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.MessageContext;
+import tk.freaxsoftware.extras.bus.MessageContextHolder;
+import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
 
 /**
@@ -46,7 +50,7 @@ public class MessageServer {
     /**
      * Gson instance.
      */
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonUtils.getGson();
     
     /**
      * Deploy spark endpoint for message listening. It will config spark if config not nested.
@@ -61,31 +65,30 @@ public class MessageServer {
             LOGGER.info("Using nested Spark instance.");
         }
         
-        post(LocalHttpIds.LOCAL_HTTP_URL, "application/json", (Request req, Response res) -> {
+        post(LocalHttpCons.L_HTTP_URL, "application/json", (Request req, Response res) -> {
             JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP, req.ip());
-            LocalHttpIds.Mode mode = LocalHttpIds.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name()));
+            MessageContextHolder.setContext(new MessageContext(entry.getTrxId()));
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
+            LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();
+            MessageOptions options;
+            MessageHolder holder = entry.toMessageHolder();
             switch (mode) {
                 case BROADCAST:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().broadcast().build());
+                    options = MessageOptions.Builder.newInstance().deliveryNotification().broadcast().headers(entry.getHeaders()).build();
                     break;
                 case CALLBACK:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().callback((messageResponse) -> {
-                        response.setMessageId(entry.getMessageId());
-                        response.setHeaders(messageResponse.getHeaders());
-                        if (messageResponse.getContent() != null) {
-                            response.setFullTypeName(messageResponse.getContent().getClass().getCanonicalName());
-                            response.setTypeName(messageResponse.getContent().getClass().getSimpleName());
-                            response.setContent(messageResponse.getContent());
-                        }
-                    }).build());
+                    options = MessageOptions.Builder.newInstance().deliveryCall().headers(entry.getHeaders()).callback((messageResponse) -> {
+                        response.initAsResponse(holder, messageResponse);
+                    }).build();
                     break;
                 default:
-                    MessageBus.fire(entry.getMessageId(), entry.getContent(), entry.getHeaders(), MessageOptions.Builder.newInstance().async().build());
+                    options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
             }
-            if (response.getMessageId() != null) {
+            holder.setOptions(options);
+            MessageBus.fire(holder);
+            if (response.getTopic() != null) {
                 return response;
             } else {
                 res.status(200);

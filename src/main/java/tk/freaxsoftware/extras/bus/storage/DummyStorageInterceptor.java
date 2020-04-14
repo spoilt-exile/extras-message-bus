@@ -16,3 +16,25 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.storage;
+
+import tk.freaxsoftware.extras.bus.MessageHolder;
+
+/**
+ * Dummy storage interceptor.
+ * @author Stanislav Nepochatov
+ * @since 5.0
+ */
+public class DummyStorageInterceptor implements StorageInterceptor {
+
+    @Override
+    public void storeMessage(MessageHolder holder) {
+        //Do nothing.
+    }
+
+    @Override
+    public void storeProcessedMessage(MessageHolder holder) {
+        //Do nothing.
+    }
+    
+}

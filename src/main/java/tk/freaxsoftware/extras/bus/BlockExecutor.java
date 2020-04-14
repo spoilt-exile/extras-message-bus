@@ -20,6 +20,7 @@
 package tk.freaxsoftware.extras.bus;
 
 import java.util.concurrent.ExecutorService;
+import tk.freaxsoftware.extras.bus.executor.MessageExecutor;
 
 /**
  * Block executor allows to execute block of codes in sync and async manner.
@@ -41,7 +42,7 @@ public class BlockExecutor {
      * @param block block of code;
      * @param async async flag;
      */
-    public void execute(CodeBlock block, Boolean async) {
+    public void execute(MessageExecutor block, Boolean async) {
         if (async) {
             executeAsync(block);
         } else {
@@ -53,7 +54,7 @@ public class BlockExecutor {
      * Execute in sync mode.
      * @param block code block;
      */
-    public void executeSync(CodeBlock block) {
+    public void executeSync(MessageExecutor block) {
         block.exec();
     }
     
@@ -61,7 +62,7 @@ public class BlockExecutor {
      * Execute in async mode.
      * @param block code block;
      */
-    public void executeAsync(CodeBlock block) {
+    public void executeAsync(MessageExecutor block) {
         threadService.submit(() -> block.exec());
     }
     

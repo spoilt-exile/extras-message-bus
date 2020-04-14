@@ -16,3 +16,26 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus;
+
+/**
+ * Context holder.
+ * @author Stanislav Nepochatov
+ * @since 5.0
+ */
+public class MessageContextHolder {
+    
+    private final static ThreadLocal<MessageContext> context = new ThreadLocal<>();
+    
+    public static MessageContext getContext() {
+        if (context.get() == null) {
+            context.set(new MessageContext());
+        }
+        return context.get();
+    }
+    
+    public static void setContext(MessageContext messageContext) {
+        context.set(messageContext);
+    }
+    
+}

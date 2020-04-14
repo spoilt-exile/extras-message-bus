@@ -16,17 +16,24 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.bridge.http.util;
 
-package tk.freaxsoftware.extras.bus;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import java.lang.reflect.Type;
+import java.time.ZonedDateTime;
 
 /**
- * Code block to fold some operation in block which can be executed sync/async.
+ * GSON serializer for date time.
  * @author Stanislav Nepochatov
  */
-public interface CodeBlock {
+public class ZonedDateTimeSerializer implements JsonSerializer<ZonedDateTime> {
+
+    @Override
+    public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+        return new JsonPrimitive(src.toString());
+    }
     
-    /**
-     * Main execution method.
-     */
-    void exec();
 }

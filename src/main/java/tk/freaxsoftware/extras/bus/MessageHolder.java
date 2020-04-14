@@ -18,8 +18,11 @@
  */
 package tk.freaxsoftware.extras.bus;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Message holder for important information related to message.
@@ -29,14 +32,44 @@ import java.util.Map;
 public class MessageHolder<T> {
     
     /**
-     * Message id: destinantion of the message.
+     * Unique id of the message.
      */
-    private String messageId;
+    private String id;
+    
+    /**
+     * Unique id of the transaction.
+     */
+    private String trxId;
+    
+    /**
+     * Date of message creation.
+     */
+    private ZonedDateTime created;
+    
+    /**
+     * Date of the last message update.
+     */
+    private ZonedDateTime updated;
+    
+    /**
+     * Status of the message.
+     */
+    private MessageStatus status;
+    
+    /**
+     * Topic of the message.
+     */
+    private String topic;
     
     /**
      * Options provided to message bus during sending of the message.
      */
     private MessageOptions options;
+    
+    /**
+     * Copy of redelivery counter from options.
+     */
+    private Integer redeliveryCounter = 0;
     
     /**
      * Headers of the message.
@@ -57,29 +90,77 @@ public class MessageHolder<T> {
      * Default constructor.
      */
     public MessageHolder() {
+        this.id = UUID.randomUUID().toString();
+        this.trxId = MessageContextHolder.getContext().getTrxId();
         this.headers = new HashMap<>();
+        this.created = ZonedDateTime.now();
+        this.status = MessageStatus.NEW;
     }
 
     /**
      * Detail constructor.
-     * @param messageId id of the message;
+     * @param topic destination of the message;
      * @param options options of the message;
      * @param content content of the message;
      */
-    public MessageHolder(String messageId, MessageOptions options, T content) {
+    public MessageHolder(String topic, MessageOptions options, T content) {
         this();
-        this.messageId = messageId;
+        this.headers = options.getHeaders();
+        this.topic = topic;
         this.options = options;
         this.content = content;
         this.response = new ResponseHolder();
+        if (!Objects.equals(options.getRedeliveryCounter(), this.redeliveryCounter)) {
+            this.redeliveryCounter = options.getRedeliveryCounter();
+        }
     }
 
-    public String getMessageId() {
-        return messageId;
+    public String getId() {
+        return id;
     }
 
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
+    }
+
+    public ZonedDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(ZonedDateTime created) {
+        this.created = created;
+    }
+
+    public ZonedDateTime getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(ZonedDateTime updated) {
+        this.updated = updated;
+    }
+
+    public MessageStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MessageStatus status) {
+        this.status = status;
+    }
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 
     public MessageOptions getOptions() {
@@ -90,6 +171,14 @@ public class MessageHolder<T> {
         this.options = options;
     }
 
+    public Integer getRedeliveryCounter() {
+        return redeliveryCounter;
+    }
+
+    public void setRedeliveryCounter(Integer redeliveryCounter) {
+        this.redeliveryCounter = redeliveryCounter;
+    }
+    
     public Map<String, String> getHeaders() {
         return headers;
     }
@@ -112,5 +201,34 @@ public class MessageHolder<T> {
 
     public void setResponse(ResponseHolder response) {
         this.response = response;
+    }
+    
+    public void decreaseRedeliveryCounter() {
+        this.redeliveryCounter--;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final MessageHolder<?> other = (MessageHolder<?>) obj;
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        return true;
     }
 }

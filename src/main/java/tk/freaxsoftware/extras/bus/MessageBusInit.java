@@ -25,14 +25,19 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpIds;
+import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageClientSender;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageServer;
 import tk.freaxsoftware.extras.bus.bridge.http.RemoteSubscriptionReceiver;
+import tk.freaxsoftware.extras.bus.bridge.http.cross.CrossConnectionInit;
+import tk.freaxsoftware.extras.bus.bridge.http.cross.CrossConnectionStorage;
+import tk.freaxsoftware.extras.bus.bridge.http.cross.CrossNode;
 import tk.freaxsoftware.extras.bus.config.MessageBusConfig;
 import tk.freaxsoftware.extras.bus.config.PropertyConfigProcessor;
 import tk.freaxsoftware.extras.bus.config.pool.PoolType;
 import tk.freaxsoftware.extras.bus.config.pool.ThreadPoolConfig;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptor;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptorFactory;
 
 /**
  * Message bus init service. Reads configuration and do all routine.
@@ -53,6 +58,11 @@ public class MessageBusInit {
     private volatile MessageBusConfig config;
     
     /**
+     * Storage interceptor.
+     */
+    private StorageInterceptor interceptor;
+    
+    /**
      * Inits message bus config and additional components. Trying to read 
      * default config {@code bus_default.json} in main resources folder at first. 
      * Also it reads {@code bus.json} standard configuration file in resources. 
@@ -66,6 +76,7 @@ public class MessageBusInit {
      * <li>Creating block executor instance;</li>
      * <li>Establish HTTP server node (if configured);</li>
      * <li>Establish HTTP client sender (if server and client both configured) or creating instance of {@code RemoteSubscriptionReceiver};</li>
+     * <li>Init storage (if configured);</li>
      * </ol>
      */
     protected void ensureInit() {
@@ -86,20 +97,37 @@ public class MessageBusInit {
             
             if (config.getBridgeClient() != null) {
                 MessageClientSender clientSender = new MessageClientSender(config.getBridgeServer(), config.getBridgeClient());
-                MessageBus.addSubscription(GlobalIds.GLOBAL_SUBSCRIBE, clientSender);
-                MessageBus.addSubscription(GlobalIds.GLOBAL_UNSUBSCRIBE, clientSender);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, clientSender);
+                MessageBus.addSubscription(GlobalCons.G_SUBSCRIBE_TOPIC, clientSender);
+                MessageBus.addSubscription(GlobalCons.G_UNSUBSCRIBE_TOPIC, clientSender);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, clientSender);
                 if (config.getBridgeClient().getAdditionalSubscriptions() != null && config.getBridgeClient().getAdditionalSubscriptions().length > 0) {
                     MessageBus.addSubscriptions(config.getBridgeClient().getAdditionalSubscriptions(), clientSender);
                 }
+                if (config.getBridgeClient().getCrossConnectionsDemand() != null 
+                        && config.getBridgeClient().getCrossConnectionsOffer() != null) {
+                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, clientSender);
+                    CrossNode node = new CrossNode();
+                    node.setNodePort(config.getBridgeServer().isNested() ? spark.Spark.port() : config.getBridgeServer().getHttpPort());
+                    node.setOfferTopics(config.getBridgeClient().getCrossConnectionsOffer());
+                    node.setDemandTopics(config.getBridgeClient().getCrossConnectionsDemand());
+                    
+                    MessageBus.fire(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, node, 
+                            MessageOptions.Builder.newInstance().async().broadcast().build());
+                    
+                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC, new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsDemand()));
+                }
             } else {
                 RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE, remoteSubscriber);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE, remoteSubscriber);
-                MessageBus.addSubscription(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC, remoteSubscriber);
+                MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, remoteSubscriber);
+                if (config.getBridgeServer().getCrossConnections()) {
+                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, new CrossConnectionStorage());
+                }
             }
         }
         
+        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
     }
     
     private MessageBusConfig readDefault() {
@@ -128,5 +156,9 @@ public class MessageBusInit {
 
     public BlockExecutor getExecutor() {
         return executor;
+    }
+
+    public StorageInterceptor getInterceptor() {
+        return interceptor;
     }
 }

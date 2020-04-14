@@ -16,3 +16,17 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.storage;
+
+/**
+ * Exception to be thrown by storage during init.
+ * @author Stanislav Nepochatov
+ * @since 5.0
+ */
+public class StorageInitException extends Exception {
+
+    public StorageInitException(String message, Throwable cause) {
+        super(message, cause);
+    }
+    
+}

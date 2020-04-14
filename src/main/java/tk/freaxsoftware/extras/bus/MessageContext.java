@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2015 Freax Software
+ * Copyright (C) 2020 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,45 +16,36 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-
 package tk.freaxsoftware.extras.bus;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 /**
- * Message header helper;
+ * Message context.
  * @author Stanislav Nepochatov
+ * @since 5.0
  */
-public class HeaderBuilder {
-    
-    private final Map<String, String> args = new HashMap<>();
+public class MessageContext {
     
     /**
-     * Add pair of key and value to header builder.
-     * @param argKey key;
-     * @param argValue value;
-     * @return builder instance;
+     * Transaction ID.
      */
-    public HeaderBuilder putArg(String argKey, String argValue) {
-        this.args.put(argKey, argValue);
-        return this;
+    private String trxId;
+
+    public MessageContext() {
+        trxId = UUID.randomUUID().toString();
     }
-    
-    /**
-     * Get headers from builder.
-     * @return map of headers;
-     */
-    public Map<String, String> build() {
-        return this.args;
+
+    public MessageContext(String trxId) {
+        this.trxId = trxId;
     }
-    
-    /**
-     * Get new builder.
-     * @return builder;
-     */
-    public static final HeaderBuilder newInstance() {
-        return new HeaderBuilder();
+
+    public String getTrxId() {
+        return trxId;
+    }
+
+    public void setTrxId(String trxId) {
+        this.trxId = trxId;
     }
     
 }

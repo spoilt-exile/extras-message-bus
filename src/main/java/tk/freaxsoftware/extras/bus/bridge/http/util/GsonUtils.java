@@ -16,3 +16,27 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.bridge.http.util;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.time.ZonedDateTime;
+
+/**
+ * GSON utils class.
+ * @author Stanislav Nepochatov
+ */
+public class GsonUtils {
+    
+    private static Gson gson;
+    
+    public static Gson getGson() {
+        if (gson == null) {
+            gson = new GsonBuilder()
+                    .registerTypeAdapter(ZonedDateTime.class, new ZonedDateTimeSerializer())
+                    .create();
+        }
+        return gson;
+    }
+    
+}

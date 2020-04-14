@@ -19,6 +19,9 @@
 
 package tk.freaxsoftware.extras.bus;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Message options for optional
  * @author Stanislav Nepochatov
@@ -39,9 +42,20 @@ public class MessageOptions {
     private boolean broadcast;
     
     /**
-     * Make sure that this message will be delivered to at least one subscriber.
+     * Message optional headers. Useful to deliver secondary data. 
+     * Accepts only strings.
      */
-    private boolean ensure;
+    private Map<String, String> headers;
+    
+    /**
+     * Describes behavior of the bus if message is unprocessed.
+     */
+    private DeliveryPolicy deliveryPolicy;
+    
+    /**
+     * Coutner for redelivery attemtps.
+     */
+    private Integer redeliveryCounter = 3;
     
     /**
      * Callback for processing of message results. Can't be used 
@@ -53,13 +67,18 @@ public class MessageOptions {
      * Private constructor.
      * @param async async flag;
      * @param broadcast broadcast flag;
+     * @param deliveryPolicy delivery policy;
      * @param callback callback handler;
+     * @param headers message headers;
      */
-    private MessageOptions(boolean async, boolean broadcast, boolean ensure, Callback callback) {
+    private MessageOptions(boolean async, boolean broadcast, 
+            DeliveryPolicy deliveryPolicy, Callback callback, 
+            Map<String, String> headers) {
         this.async = async;
         this.broadcast = broadcast;
-        this.ensure = ensure;
+        this.deliveryPolicy = deliveryPolicy;
         this.callback = callback;
+        this.headers = headers != null ? headers : new HashMap<>();
     }
 
     public boolean isAsync() {
@@ -78,12 +97,28 @@ public class MessageOptions {
         this.broadcast = broadcast;
     }
 
-    public boolean isEnsure() {
-        return ensure;
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 
-    public void setEnsure(boolean ensure) {
-        this.ensure = ensure;
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
+    }
+
+    public DeliveryPolicy getDeliveryPolicy() {
+        return deliveryPolicy;
+    }
+
+    public void setDeliveryPolicy(DeliveryPolicy deliveryPolicy) {
+        this.deliveryPolicy = deliveryPolicy;
+    }
+
+    public Integer getRedeliveryCounter() {
+        return redeliveryCounter;
+    }
+
+    public void setRedeliveryCounter(Integer redeliveryCounter) {
+        this.redeliveryCounter = redeliveryCounter;
     }
 
     public Callback getCallback() {
@@ -95,11 +130,52 @@ public class MessageOptions {
     }
     
     /**
+     * Delivery policy for unprocessed messages.
+     */
+    public static enum DeliveryPolicy {
+        
+        /**
+         * Forget about unprocessed messages.
+         */
+        VOID,
+        
+        /**
+         * Throw an exception if no subscribers available.
+         */
+        CALL,
+        
+        /**
+         * Store messages in storage until subscriber unavailable.
+         */
+        STORE;
+    }
+    
+    /**
      * Builds defatul message options: sync point-to-point message without callback.
+     * @param headers message headers;
      * @return message options instance;
      */
-    public static MessageOptions defaultOptions() {
-        return new MessageOptions(false, false, false, null);
+    public static MessageOptions defaultOptions(Map<String, String> headers) {
+        return new MessageOptions(false, false, DeliveryPolicy.VOID, null, headers);
+    }
+    
+    /**
+     * Builds message options for notifications: async, broadcast, with storage for unprocessed messages.
+     * @param headers message headers;
+     * @return message options instance;
+     */
+    public static MessageOptions notificationOptions(Map<String, String> headers) {
+        return new MessageOptions(true, true, DeliveryPolicy.STORE, null, headers);
+    }
+    
+    /**
+     * Builds message options for call to another system: sync, point-to-point, ensured with callback.
+     * @param headers message headers;
+     * @param callback message callback;
+     * @return message options instance;
+     */
+    public static MessageOptions callOptions(Map<String, String> headers, Callback callback) {
+        return new MessageOptions(false, false, DeliveryPolicy.CALL, callback, headers);
     }
     
     /**
@@ -116,7 +192,7 @@ public class MessageOptions {
          * Default constructor. Will build default options.
          */
         private Builder() {
-            instance = MessageOptions.defaultOptions();
+            instance = MessageOptions.defaultOptions(null);
         }
         
         /**
@@ -168,20 +244,100 @@ public class MessageOptions {
         }
         
         /**
-         * Ensure that this message will be delivered to at least one subscriber.
+         * Put header in the message.
+         * @param name name of header;
+         * @param value value of header;
          * @return builder instance;
          */
-        public Builder ensure() {
-            this.instance.setEnsure(true);
+        public Builder header(String name, String value) {
+            this.instance.getHeaders().put(name, value);
             return this;
         }
         
         /**
-         * Make notification message: actual delivery wan't matter.
+         * Put header in the message.
+         * @param headerMap map of headers;
          * @return builder instance;
          */
-        public Builder notification() {
-            this.instance.setEnsure(false);
+        public Builder headers(Map<String, String> headerMap) {
+            this.instance.getHeaders().putAll(headerMap);
+            return this;
+        }
+       
+        /**
+         * Use VOID delivery policy. Acceptable only for messages with minor importance.
+         * @return builder instance.
+         */
+        public Builder deliveryVoid() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.VOID);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(false);
+            this.instance.setCallback(null);
+            return this;
+        }
+        
+        /**
+         * Use CALL delivery policy. Fit for timed operations where response required.
+         * @return builder instance.
+         */
+        public Builder deliveryCall() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setAsync(false);
+            return this;
+        }
+        
+        /**
+         * Use CALL delivery policy.Fit for timed operations where response required.
+         * @param callback message callback;
+         * @return builder instance.
+         */
+        public Builder deliveryCall(Callback callback) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setBroadcast(false);
+            this.instance.setCallback(callback);
+            return this;
+        }
+        
+        /**
+         * Use CALL delivery policy.Fit for timed operations where response required.
+         * @param callback message callback;
+         * @param redeliveryCount number of redelivery attempts;
+         * @return builder instance.
+         */
+        public Builder deliveryCall(Callback callback, Integer redeliveryCount) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.CALL);
+            this.instance.setAsync(false);
+            this.instance.setBroadcast(false);
+            this.instance.setCallback(callback);
+            this.instance.setRedeliveryCounter(redeliveryCount);
+            return this;
+        }
+        
+        /**
+         * Use STORE delivery policy. Fit for messages which can be processed anytime in future.
+         * @return builder instance.
+         */
+        public Builder deliveryNotification() {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(true);
+            this.instance.setCallback(null);
+            return this;
+        }
+        
+        /**
+         * Use STORE delivery policy. Fit for messages which can be processed anytime in future.
+         * @param redeliveryCounter number of attempts for redelivery before droping message;
+         * @return builder instance.
+         */
+        public Builder deliveryNotification(Integer redeliveryCounter) {
+            this.instance.setDeliveryPolicy(DeliveryPolicy.STORE);
+            this.instance.setAsync(true);
+            this.instance.setBroadcast(true);
+            this.instance.setCallback(null);
+            this.instance.setRedeliveryCounter(redeliveryCounter);
             return this;
         }
         

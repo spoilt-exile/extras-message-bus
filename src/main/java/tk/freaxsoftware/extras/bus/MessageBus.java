@@ -25,8 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
+import tk.freaxsoftware.extras.bus.executor.MessageExecutorFactory;
 
 /**
  * Main message bus entry class.
@@ -44,152 +44,141 @@ public final class MessageBus {
     /**
      * Message bus init util.
      */
-    private static final MessageBusInit init = new MessageBusInit();
+    private static MessageBusInit init = new MessageBusInit();
     
     /**
-     * Subscribe receiver for message with following id.
-     * @param id message id string;
+     * Subscribe receiver for message with following topic.
+     * @param topic message topic destination;
      * @param receiver message receiver;
      */
-    public static void addSubscription(final String id, final Receiver receiver) {
+    public static void addSubscription(final String topic, final Receiver receiver) {
         init();
-        if (id == null || receiver == null) {
+        if (topic == null || receiver == null) {
             throw new ReceiverRegistrationException("Can't processed registration with null references!");
         }
-        LOGGER.info("add new subscription for " + id);
-        Subscription subscription = getSubscription(id);
+        LOGGER.info("add new subscription for " + topic);
+        Subscription subscription = getSubscription(topic);
         if (subscription == null) {
-            subscription = new Subscription(id);
+            subscription = new Subscription(topic);
             subscription.addReceiver(receiver);
             subscriptions.add(subscription);
         } else {
             subscription.addReceiver(receiver);
         }
-        fire(GlobalIds.GLOBAL_SUBSCRIBE, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
+        MessageBus.fire(GlobalCons.G_SUBSCRIBE_TOPIC, receiver, 
+                MessageOptions.Builder.newInstance().async().broadcast()
+                        .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
     
     /**
-     * Subscribe receiver for multiplie messages ids.
-     * @param ids array of ids;
+     * Subscribe receiver for multiplie messages topics.
+     * @param topics array of topic destinations;
      * @param receiver message receiver;
      */
-    public static void addSubscriptions(final String[] ids, final Receiver receiver) {
-        for (String id: ids) {
-            addSubscription(id, receiver);
+    public static void addSubscriptions(final String[] topics, final Receiver receiver) {
+        for (String topic: topics) {
+            addSubscription(topic, receiver);
         }
     }
     
     /**
-     * Unsubscribe following receiver from message id.
-     * @param id message id;
+     * Tests if there is subscription for specified topic.
+     * @param topic topic to search;
+     * @return true if there is valid subsciription for topic / false if there is none;
+     */
+    public static boolean isSubscribed(final String topic) {
+        return getSubscription(topic) != null;
+    }
+    
+    /**
+     * Unsubscribe following receiver from message topic.
+     * @param topic message topic destination;
      * @param receiver the same receiver instance which were using during subscription;
      */
-    public static void removeSubscription(final String id, final Receiver receiver) {
-        LOGGER.info("removing subscription for " + id);
+    public static void removeSubscription(final String topic, final Receiver receiver) {
+        LOGGER.info("removing subscription for " + topic);
         init();
-        Subscription subscription = getSubscription(id);
+        Subscription subscription = getSubscription(topic);
         if (subscription != null) {
             subscription.getReceivers().remove(receiver);
             if (subscription.getReceivers().isEmpty()) {
                 subscriptions.remove(subscription);
             }
         }
-        fire(GlobalIds.GLOBAL_UNSUBSCRIBE, receiver, HeaderBuilder.newInstance().putArg(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID, id).build(), MessageOptions.Builder.newInstance().async().broadcast().build());
+        MessageBus.fire(GlobalCons.G_UNSUBSCRIBE_TOPIC, receiver, 
+                MessageOptions.Builder.newInstance().async().broadcast()
+                        .header(GlobalCons.G_SUBSCRIPTION_DEST_HEADER, topic).build());
     }
     
     /**
-     * Unsubscribe following receiver from following message ids.
-     * @param ids array of message ids to unsubscribe;
+     * Unsubscribe following receiver from following message topics.
+     * @param topics array of topic destinations;
      * @param receiver the same receiver instance which were using during subscription;
      */
-    public static void removeSubscriptions(final String[] ids, final Receiver receiver) {
-        for (String id: ids) {
-            removeSubscription(id, receiver);
+    public static void removeSubscriptions(final String[] topics, final Receiver receiver) {
+        for (String topic: topics) {
+            removeSubscription(topic, receiver);
         }
     }
     
     /**
      * Clear all subscriptions. This action reset whole message bus. Use with care.
+     * @deprecated 
      */
     public static void clearBus() {
-        init();
-        LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
-        subscriptions.clear();
+        //init = new MessageBusInit();
+        //init.ensureInit();
+        //LOGGER.info("clearing all subscriptions... Reinit subscriptions to proceed.");
+        //subscriptions.clear();
     }
     
     /**
      * Fire message to the bus.
      * @param <T> type of content;
-     * @param messageId id of message;
+     * @param topic destination of message;
      * @param content message content;
      */
-    public static <T> void fire(final String messageId, final T content) {
-        fire(messageId, content, null, MessageOptions.defaultOptions());
+    public static <T> void fire(final String topic, final T content) {
+        MessageBus.fire(topic, content, MessageOptions.defaultOptions(null));
     }
     
     /**
      * Fire message to the bus.
      * @param <T> type of content;
-     * @param messageId id of message;
-     * @param headers message headers;
+     * @param topic destination of message;
      * @param options options for message processing;
      */
-    public static <T> void fire(final String messageId, final Map<String, String> headers, final MessageOptions options) {
-        fire(messageId, null, headers, options);
+    public static <T> void fire(final String topic, final MessageOptions options) {
+        MessageBus.fire(topic, null, options);
     }
     
     /**
      * Fire message to the bus.
      * @param <T> type of content;
-     * @param messageId id of message;
+     * @param topic destination of message;
      * @param content message content;
-     * @param headers message headers;
      * @param options options for message processing;
      */
-    public static <T> void fire(final String messageId, final T content, final Map<String, String> headers, final MessageOptions options) {
+    public static <T> void fire(final String topic, final T content, final MessageOptions options) {
+        MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
+        LOGGER.info("Message with topic {} fired to bus", topic);
+        fire(holder);
+    }
+    
+    /**
+     * Fire method to submit message holder to bus.
+     * @param holder message holder to process; 
+     */
+    public static void fire(MessageHolder holder) {
         init();
-        if (options == null) {
+        if (holder.getOptions() == null) {
             throw new IllegalArgumentException("Message options can't be null!");
         }
-        LOGGER.info(messageId + " message fired to bus");
-        Subscription subscription = getSubscription(messageId);
-        if (subscription != null) {
-            init.getExecutor().execute(() -> {
-                if (options.isBroadcast()) {
-                    MessageHolder<T> holder = new MessageHolder<>(messageId, options, content);
-                    if (headers != null) {
-                        holder.setHeaders(headers);
-                    }
-                    for (Receiver receiver: subscription.getReceivers()) {
-                        try {
-                            receiver.receive(holder);
-                        } catch (Exception ex) {
-                            LOGGER.error("Receiver " + receiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                            holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_HEADER_EXCEPTION, ex.getClass().getCanonicalName());
-                        }
-                    }
-                } else {
-                    MessageHolder<T> holder = new MessageHolder<>(messageId, options, content);
-                    if (headers != null) {
-                        holder.setHeaders(headers);
-                    }
-                    Receiver singleReceiver = subscription.getRoundRobinIterator().next();
-                    try {
-                        singleReceiver.receive(holder);
-                    } catch (Exception ex) {
-                        LOGGER.error("Receiver " + singleReceiver.getClass().getName() + " for id " + messageId + " throws exception", ex);
-                        holder.getResponse().getHeaders().put(GlobalIds.GLOBAL_HEADER_EXCEPTION, ex.getClass().getCanonicalName());
-                    }
-                    if (options.getCallback() != null) {
-                        options.getCallback().callback(holder.getResponse());
-                    }
-                }
-            }, options.isAsync());
-        } else {
-            if (options.isEnsure()) {
-                throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", messageId));
-            }
-        }
+        Subscription subscription = getSubscription(holder.getTopic());
+        holder.setStatus(MessageStatus.PROCESSING);
+        init.getExecutor().execute(
+                MessageExecutorFactory.newExecutor(holder, subscription, init), holder.getOptions().isAsync()
+        );
     }
     
     /**
@@ -199,7 +188,7 @@ public final class MessageBus {
      */
     private static Subscription getSubscription(final String messageId) {
         for (Subscription subscription: subscriptions) {
-            if (Objects.equals(subscription.getId(), messageId)) {
+            if (Objects.equals(subscription.getTopic(), messageId)) {
                 return subscription;
             }
         }
@@ -213,7 +202,7 @@ public final class MessageBus {
      * @return true - no errors founded, false - there is exception stored in map or something else;
      */
     public static Boolean isSuccessful(Map<String, Object> result) {
-        return !result.containsKey(GlobalIds.GLOBAL_HEADER_EXCEPTION) && !result.containsKey(GlobalIds.GLOBAL_ERROR_MESSAGE);
+        return !result.containsKey(GlobalCons.G_EXCEPTION_HEADER);
     }
     
     /**

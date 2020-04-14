@@ -16,3 +16,26 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
+package tk.freaxsoftware.extras.bus.storage;
+
+import tk.freaxsoftware.extras.bus.MessageHolder;
+
+/**
+ * Storage interceptor ties itself with message bus lifecycle to store messages in certain cases.
+ * @author Stanislav Nepochatov
+ * @since 5.0
+ */
+public interface StorageInterceptor {
+    
+    /**
+     * Saves messages to storage. May init additional processing.
+     * @param holder message to save;
+     */
+    void storeMessage(MessageHolder holder);
+    
+    /**
+     * Saves messaged successful processing.
+     * @param holder message to save;
+     */
+    void storeProcessedMessage(MessageHolder holder);
+}

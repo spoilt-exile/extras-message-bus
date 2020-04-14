@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.GlobalIds;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
@@ -65,6 +65,8 @@ public class RemoteSubscriptionReceiver implements Receiver {
                             if (senderEntry.getValue().isBeatExpired(heartBeatMaxAge)) {
                                 LOGGER.warn(String.format("Killing node %s cause expired heartbeat.", senderEntry.getKey()));
                                 MessageBus.removeSubscriptions(senderEntry.getValue().getSubscriptions(), senderEntry.getValue());
+                                MessageBus.removeSubscription(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    senderEntry.getValue().getAddress(), senderEntry.getValue().getPort()), senderEntry.getValue());
                                 senderMap.remove(senderEntry.getKey());
                             }
                         }
@@ -81,44 +83,52 @@ public class RemoteSubscriptionReceiver implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        String subscriptionId = (String) message.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID);
-        String nodeIp = (String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_IP);
-        Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT));
-        if (!Objects.equals(message.getMessageId(), LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT)) {
-            LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getMessageId(), nodeIp, nodePort));
+        String subscriptionId = (String) message.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER);
+        String nodeIp = (String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER);
+        Integer nodePort = Integer.parseInt((String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_PORT_HEADER));
+        String nodeKey = nodeIp + ":" + nodePort;
+        if (!Objects.equals(message.getTopic(), LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC)) {
+            LOGGER.info(String.format("Getting message %s from node %s on port %d", message.getTopic(), nodeIp, nodePort));
         }
-        switch (message.getMessageId()) {
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE:
+        switch (message.getTopic()) {
+            case LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC:
                 MessagePeerSender peerSender;
-                if (!senderMap.containsKey(nodeIp)) {
+                if (!senderMap.containsKey(nodeKey)) {
                     LOGGER.info("Creating new subscriber for node.");
                     peerSender = new MessagePeerSender(nodeIp, nodePort);
-                    senderMap.put(nodeIp, peerSender);
+                    senderMap.put(nodeKey, peerSender);
+                    String localNodeUp = String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    nodeIp, nodePort);
+                    MessageBus.addSubscription(localNodeUp, peerSender);
+                    peerSender.addSubscription(localNodeUp);
                 } else {
-                    peerSender = senderMap.get(nodeIp);
+                    peerSender = senderMap.get(nodeKey);
                 }
                 peerSender.addSubscription(subscriptionId);
                 MessageBus.addSubscription(subscriptionId, peerSender);
                 break;
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE:
-                if (senderMap.containsKey(nodeIp)) {
-                    MessagePeerSender peerSender2 = senderMap.get(nodeIp);
+            case LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC:
+                if (senderMap.containsKey(nodeKey)) {
+                    MessagePeerSender peerSender2 = senderMap.get(nodeKey);
                     peerSender2.removeSubscription(subscriptionId);
                     MessageBus.removeSubscription(subscriptionId, peerSender2);
+                    //TO-DO: add proper logic to exclude node up
                     if (peerSender2.isEmpty()) {
                         LOGGER.info("Removing subscriber for node.");
-                        senderMap.remove(nodeIp);
+                        senderMap.remove(nodeKey);
+                        MessageBus.removeSubscription(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
+                                    nodeIp, nodePort), peerSender2);
                     }
                 }
                 break;
-            case LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT:
-                if (senderMap.containsKey(nodeIp)) {
-                    MessagePeerSender peerSender3 = senderMap.get(nodeIp);
+            case LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC:
+                if (senderMap.containsKey(nodeKey)) {
+                    MessagePeerSender peerSender3 = senderMap.get(nodeKey);
                     peerSender3.beat();
                 } else {
                     LOGGER.info("Reinit connection for " + nodeIp + " on port " + nodePort);
                     MessagePeerSender peerSender4 = new MessagePeerSender(nodeIp, nodePort);
-                    senderMap.put(nodeIp, peerSender4);
+                    senderMap.put(nodeKey, peerSender4);
                     if (message.getContent() != null) {
                         Set<String> reconnectIds = (Set) message.getContent();
                         MessageBus.addSubscriptions(reconnectIds.toArray(new String[reconnectIds.size()]), peerSender4);

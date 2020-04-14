@@ -24,8 +24,7 @@ import java.util.concurrent.Executors;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tk.freaxsoftware.extras.bus.GlobalIds;
-import tk.freaxsoftware.extras.bus.HeaderBuilder;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
@@ -51,7 +50,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
-    private final Set<String> subscriptions = new ConcurrentHashSet();
+    private final Set<String> subscriptions = new ConcurrentHashSet<>();
     
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
     
@@ -72,7 +71,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
                 public void run() {
                     while (true) {
                         try {
-                            MessageBus.fire(LocalHttpIds.LOCAL_HTTP_MESSAGE_HEARTBEAT, subscriptions, HeaderBuilder.newInstance().build(), MessageOptions.Builder.newInstance().sync().broadcast().build());
+                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().build());
                         } catch (Exception ex) {
                             LOGGER.error("Can't send heartbeat, maybe server is offline, reinit connection", ex);
                         }
@@ -88,14 +87,14 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     }
 
     @Override
-    public void receive(MessageHolder message) throws Exception {
+    public synchronized void receive(MessageHolder message) throws Exception {
         // Ignore itself.
         if (message.getContent() == this) {
             return;
         }
-        HttpMessageEntry entry = new HttpMessageEntry(message.getMessageId(), message.getHeaders(), message.getContent());
+        HttpMessageEntry entry = new HttpMessageEntry(message);
         setupEntry(message, entry);
-        LOGGER.debug(String.format("Sending message %s to node %s on port %d", message.getMessageId(), config.getAddress(), config.getPort()));
+        LOGGER.debug(String.format("Sending message %s to node %s on port %d", message.getTopic(), config.getAddress(), config.getPort()));
         HttpMessageEntry response = sendEntry(config.getAddress(), config.getPort(), entry);
         if (response != null) {
             message.getResponse().setHeaders(response.getHeaders());
@@ -111,24 +110,24 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     private void setupEntry(MessageHolder message, HttpMessageEntry entry) {
         setupMessageMode(message, entry);
         //Add header with this node server port for back comminication.
-        entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_NODE_PORT, serverConfig.isNested() ? String.valueOf(spark.Spark.port()) : serverConfig.getHttpPort().toString());
+        entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_PORT_HEADER, serverConfig.isNested() ? String.valueOf(spark.Spark.port()) : serverConfig.getHttpPort().toString());
         //Override if subscription message.
-        if (entry.getMessageId().equals(GlobalIds.GLOBAL_SUBSCRIBE)) {
-            subscriptions.add((String) entry.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID));
-            entry.setMessageId(LocalHttpIds.LOCAL_HTTP_MESSAGE_SUBSCRIBE);
+        if (entry.getTopic().equals(GlobalCons.G_SUBSCRIBE_TOPIC)) {
+            subscriptions.add((String) entry.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER));
+            entry.setTopic(LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC);
             entry.setContent(null);
             entry.setFullTypeName(null);
             entry.setTypeName(null);
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name());
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name());
         }
         //Override if unsubscription message.
-        if (entry.getMessageId().equals(GlobalIds.GLOBAL_UNSUBSCRIBE)) {
-            subscriptions.remove((String) entry.getHeaders().get(GlobalIds.GLOBAL_HEADER_SUBSCRIPTION_ID));
-            entry.setMessageId(LocalHttpIds.LOCAL_HTTP_MESSAGE_UNSUBSCRIBE);
+        if (entry.getTopic().equals(GlobalCons.G_UNSUBSCRIBE_TOPIC)) {
+            subscriptions.remove((String) entry.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER));
+            entry.setTopic(LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC);
             entry.setContent(null);
             entry.setFullTypeName(null);
             entry.setTypeName(null);
-            entry.getHeaders().put(LocalHttpIds.LOCAL_HTTP_HEADER_MODE, LocalHttpIds.Mode.SIMPLE.name());
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name());
         }
     }
 }
