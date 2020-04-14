@@ -27,6 +27,8 @@ import spark.Request;
 import spark.Response;
 import static spark.Spark.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.MessageContext;
+import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
@@ -66,6 +68,7 @@ public class MessageServer {
         post(LocalHttpCons.L_HTTP_URL, "application/json", (Request req, Response res) -> {
             JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
+            MessageContextHolder.setContext(new MessageContext(entry.getTrxId()));
             entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
             LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();

@@ -20,6 +20,8 @@ package tk.freaxsoftware.extras.bus.executor.impl;
 
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBusInit;
+import tk.freaxsoftware.extras.bus.MessageContext;
+import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.Subscription;
@@ -39,6 +41,7 @@ public class VoidMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
+        MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
         if (subscription != null) {
             subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
                 try {

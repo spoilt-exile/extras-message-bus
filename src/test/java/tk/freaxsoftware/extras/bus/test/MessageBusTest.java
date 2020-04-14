@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.Callback;
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
+import tk.freaxsoftware.extras.bus.MessageContext;
+import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.ResponseHolder;
@@ -130,6 +132,20 @@ public class MessageBusTest {
         MessageBus.fire(ROUND_ROBIN_REDELIVERY, MessageOptions.Builder.newInstance().deliveryCall((Callback) (ResponseHolder response) -> {
             assertTrue(response.getHeaders().containsKey(GlobalCons.G_EXCEPTION_HEADER));
         }, 2).build());
+    }
+    
+    @Test
+    public void emptyContextTest() {
+        MessageHolder holder = new MessageHolder();
+        String uid = MessageContextHolder.getContext().getTrxId();
+        assertEquals(uid, holder.getTrxId());
+    }
+    
+    @Test
+    public void fullContextTest() {
+        MessageContextHolder.setContext(new MessageContext("TEST"));
+        MessageHolder holder = new MessageHolder();
+        assertEquals("TEST", holder.getTrxId());
     }
     
     @After

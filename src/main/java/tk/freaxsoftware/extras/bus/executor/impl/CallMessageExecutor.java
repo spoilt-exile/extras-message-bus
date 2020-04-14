@@ -20,6 +20,8 @@ package tk.freaxsoftware.extras.bus.executor.impl;
 
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBusInit;
+import tk.freaxsoftware.extras.bus.MessageContext;
+import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
@@ -41,6 +43,7 @@ public class CallMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
+        MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
         init.getInterceptor().storeMessage(holder);
         if (subscription != null) {
             Integer tryIndex = 0;

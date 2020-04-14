@@ -91,7 +91,7 @@ public class MessageHolder<T> {
      */
     public MessageHolder() {
         this.id = UUID.randomUUID().toString();
-        this.trxId = UUID.randomUUID().toString();
+        this.trxId = MessageContextHolder.getContext().getTrxId();
         this.headers = new HashMap<>();
         this.created = ZonedDateTime.now();
         this.status = MessageStatus.NEW;
