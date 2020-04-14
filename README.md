@@ -13,7 +13,7 @@ To subscribe on message call method `addSubscription` with string as message des
 
 ```java
 MessageBus.addSubscription("Test.Message", (message) -> {
-    System.out.printf("System message received %s", holder.getMessageId());
+    System.out.printf("System message received %s", holder.getTopic());
 });
 ```
 
@@ -31,16 +31,16 @@ Also message can hold response but it's only available to callback implementatio
 **To fire message:**
 
 ```java
-//Sync, point-to-point, no callback, no ensure, no headers, string content
+//Sync, point-to-point, no callback, void delivry, no headers, string content
 MessageBus.fire("Test.Empty", "SomeString");
 
-//Sync, point-to-point, no callback, no ensure, headers, no content
+//Sync, point-to-point, no callback, void, headers, no content
 MessageBus.fire("Test.Empty2", MessageOptions.Builder.newInstance().header("SomeHeader", "value").build());
 
-//Async, point-to-point, no callback, no ensure, headers, Long content
+//Async, point-to-point, no callback, void, headers, Long content
 MessageBus.fire("Test.Empty3", new Long(22), MessageOptions.Builder.newInstanc().header("SomeHeader", "value").async().build());
 
-//Async, point-to-point, callback, no ensure, headers, Long content
+//Async, point-to-point, callback, void, headers, Long content
 MessageBus.fire("Test.Empty4", new Long(22), MessageOptions.Builder.newInstanc().header("SomeHeader", "value").async().callback((response) -> {
     System.out.println("Messsage callback after procession!")
 }).build());
@@ -163,4 +163,4 @@ Also `AnnotationUtil` provides opposite methods to unsubscribe instances and cla
 
 Library distributed under terms of GNU LGPLv3 license.
 
-**© Freax Software 2015-2017**
+**© Freax Software 2020**
