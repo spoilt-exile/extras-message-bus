@@ -76,6 +76,7 @@ public class MessageBusInit {
      * <li>Creating block executor instance;</li>
      * <li>Establish HTTP server node (if configured);</li>
      * <li>Establish HTTP client sender (if server and client both configured) or creating instance of {@code RemoteSubscriptionReceiver};</li>
+     * <li>Init storage (if configured);</li>
      * </ol>
      */
     protected void ensureInit() {
