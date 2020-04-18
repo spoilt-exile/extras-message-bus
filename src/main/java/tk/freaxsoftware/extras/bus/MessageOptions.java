@@ -64,6 +64,12 @@ public class MessageOptions {
     private Callback callback;
 
     /**
+     * Default constructor for JSON serialization;
+     */
+    public MessageOptions() {
+    }
+
+    /**
      * Private constructor.
      * @param async async flag;
      * @param broadcast broadcast flag;
