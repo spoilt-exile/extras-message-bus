@@ -126,23 +126,27 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
         public void run() {
             LOGGER.info("Redelivery job started with period {} seconds", redeliveryPeriod);
             while (true) {
-                Set<MessageHolder> holders = storage.getUnprocessedMessages();
-                LOGGER.info("Redelivery entries batch size {}", holders.size());
-                for (MessageHolder holder: holders) {
-                    if ((config.getRedeliveryOnlyIfReceiversExists() && MessageBus.isSubscribed(holder.getTopic())) 
-                                || !config.getRedeliveryOnlyIfReceiversExists()) {
-                        if (holder.getRedeliveryCounter() == 0) {
-                            LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 
-                                    holder.getId(), holder.getTopic());
-                            holder.setStatus(MessageStatus.EXHAUSTED);
-                            storeProcessedMessage(holder);
-                            continue;
+                try {
+                    Set<MessageHolder> holders = storage.getUnprocessedMessages();
+                    LOGGER.info("Redelivery entries batch size {}", holders.size());
+                    for (MessageHolder holder: holders) {
+                        if ((config.getRedeliveryOnlyIfReceiversExists() && MessageBus.isSubscribed(holder.getTopic())) 
+                                    || !config.getRedeliveryOnlyIfReceiversExists()) {
+                            if (holder.getRedeliveryCounter() == 0) {
+                                LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 
+                                        holder.getId(), holder.getTopic());
+                                holder.setStatus(MessageStatus.EXHAUSTED);
+                                storeProcessedMessage(holder);
+                                continue;
+                            }
+                            LOGGER.info("Processing message {} to topic {} attempts left {}", 
+                                    holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
+                            holder.decreaseRedeliveryCounter();
+                            MessageBus.fire(holder);
                         }
-                        LOGGER.info("Processing message {} to topic {} attempts left {}", 
-                                holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
-                        holder.decreaseRedeliveryCounter();
-                        MessageBus.fire(holder);
                     }
+                } catch (Exception ex) {
+                    LOGGER.error("Error during redelivery loop:", ex);
                 }
                 try {
                     Thread.sleep(redeliveryPeriod * 1000);
@@ -169,7 +173,11 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
         public void run() {
             LOGGER.info("Grouping scan job started with period {} seconds", groupingScanPeriod);
             while (true) {
-                receivers.forEach(rc -> rc.sendMessagesByTimeout());
+                try {
+                    receivers.forEach(rc -> rc.sendMessagesByTimeout());
+                } catch (Exception ex) {
+                    LOGGER.error("Error during grouping loop:", ex);
+                }
                 try {
                     Thread.sleep(groupingScanPeriod * 1000);
                 } catch (InterruptedException ex) {
