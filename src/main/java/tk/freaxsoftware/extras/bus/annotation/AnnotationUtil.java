@@ -107,7 +107,7 @@ public class AnnotationUtil {
                 LOGGER.info(String.format("Skipping method %s cause it's not public.", method.getName()));
                 continue;
             }
-            if (!(method.getAnnotatedParameterTypes().length == 1 && Objects.equals(method.getAnnotatedParameterTypes()[0].getType().getTypeName(), MessageHolder.class.getTypeName()))) {
+            if (!(method.getAnnotatedParameterTypes().length == 1 && Objects.equals(method.getParameterTypes()[0].getTypeName(), MessageHolder.class.getTypeName()))) {
                 LOGGER.info(String.format("Skipping method %s cause incompatibility of the argument signature.", method.getName()));
                 continue;
             }
