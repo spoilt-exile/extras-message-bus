@@ -22,6 +22,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.ResponseHolder;
@@ -32,6 +33,11 @@ import tk.freaxsoftware.extras.bus.ResponseHolder;
  * @param <T> message content type;
  */
 public class HttpMessageEntry<T> {
+    
+    /**
+     * Prefix for transient header which shouldn't be transmitted by http bridging.
+     */
+    public final static String TRANSIENT_HEADER_PREFIX = "Trans";
     
     /**
      * Unique id of the message.
@@ -95,7 +101,7 @@ public class HttpMessageEntry<T> {
         this.updated = holder.getUpdated();
         this.status = holder.getStatus();
         this.topic = holder.getTopic();
-        this.headers = holder.getHeaders();
+        this.headers = filterHeaders(holder.getHeaders());
         this.content = holder.getContent();
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
@@ -121,7 +127,7 @@ public class HttpMessageEntry<T> {
         this.updated = updated;
         this.status = status;
         this.topic = topic;
-        this.headers = headers;
+        this.headers = filterHeaders(headers);
         this.content = content;
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
@@ -182,7 +188,7 @@ public class HttpMessageEntry<T> {
     }
 
     public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+        this.headers = filterHeaders(headers);
     }
 
     public String getFullTypeName() {
@@ -255,11 +261,17 @@ public class HttpMessageEntry<T> {
         this.updated = holder.getUpdated();
         this.status = holder.getStatus();
         this.topic = holder.getTopic();
-        this.headers = response.getHeaders();
+        this.headers = filterHeaders(response.getHeaders());
         this.content = response.getContent();
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
             this.typeName = this.content.getClass().getSimpleName();
         }
+    }
+    
+    public Map<String, String> filterHeaders(Map<String, String> rawHeaders) {
+        return rawHeaders.entrySet().stream()
+                .filter(en -> !en.getKey().startsWith(TRANSIENT_HEADER_PREFIX))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
