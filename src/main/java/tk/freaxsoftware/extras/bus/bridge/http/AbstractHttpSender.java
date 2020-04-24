@@ -71,7 +71,7 @@ public abstract class AbstractHttpSender {
         HttpPost request = new HttpPost(new URI("http", null, address, port, LocalHttpCons.L_HTTP_URL, null, null));
         request.setEntity(new StringEntity(gson.toJson(entry), ContentType.APPLICATION_JSON));
         HttpResponse response = clientBuilder.build().execute(request);
-        if (Objects.equals(LocalHttpCons.Mode.CALLBACK, entry.getHeaders().get(LocalHttpCons.L_HTTP_MODE_HEADER))) {
+        if (Objects.equals(LocalHttpCons.Mode.CALLBACK.name(), entry.getHeaders().get(LocalHttpCons.L_HTTP_MODE_HEADER))) {
             if (response.getEntity() != null) {
                 JsonObject bodyJson = new JsonParser().parse(new InputStreamReader(response.getEntity().getContent())).getAsJsonObject();
                 HttpMessageEntry responseEntry = messageUtil.deserialize(bodyJson);
@@ -94,11 +94,11 @@ public abstract class AbstractHttpSender {
      */
     protected void setupMessageMode(MessageHolder message, HttpMessageEntry entry) {
         if (message.getOptions().isBroadcast()) {
-            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.BROADCAST);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.BROADCAST.name());
         } else if (message.getOptions().getCallback() != null) {
-            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.CALLBACK);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.CALLBACK.name());
         } else {
-            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC);
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name());
         }
     }
 }
