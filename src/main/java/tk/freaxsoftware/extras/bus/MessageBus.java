@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 import tk.freaxsoftware.extras.bus.executor.MessageExecutorFactory;
 
@@ -179,6 +180,50 @@ public final class MessageBus {
         init.getExecutor().execute(
                 MessageExecutorFactory.newExecutor(holder, subscription, init), holder.getOptions().isAsync()
         );
+    }
+    
+    /**
+     * Fire sync call. Used for direct sync call only. Allows to get response content without callback.
+     * @param <T> type of message content;
+     * @param <R> type of the response content;
+     * @param topic destination of message;
+     * @param content message content;
+     * @param options options for message processing;
+     * @param responseClass class to cast response;
+     * @return content of message response;
+     * @throws Exception exception on message processing;
+     */
+    public static <T, R> R fireCall(final String topic, final T content, final MessageOptions options, final Class<R> responseClass) throws Exception {
+        init();
+        options.setAsync(false);
+        options.setBroadcast(false);
+        options.setDeliveryPolicy(MessageOptions.DeliveryPolicy.CALL);
+        if (options == null) {
+            throw new IllegalArgumentException("Message options can't be null!");
+        }
+        MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
+        MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
+        Subscription subscription = getSubscription(holder.getTopic());
+        init.getInterceptor().storeMessage(holder);
+        if (subscription != null) {
+            Integer tryIndex = 0;
+            while (tryIndex < holder.getOptions().getRedeliveryCounter()) {
+                Receiver rc = subscription.getRoundRobinIterator().next();
+                rc.receive(holder);
+                holder.setStatus(MessageStatus.FINISHED);
+                init.getInterceptor().storeProcessedMessage(holder);
+                break;
+            }
+            if (holder.getStatus() != MessageStatus.FINISHED) {
+                LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 
+                        holder.getId(), holder.getTopic());
+            }
+            return (R) holder.getResponse().getContent();
+        } else {
+            holder.setStatus(MessageStatus.ERROR);
+            init.getInterceptor().storeMessage(holder);
+            throw new NoSubscriptionMessageException(String.format("No subscribers for message %s", holder.getTopic()));
+        }
     }
     
     /**

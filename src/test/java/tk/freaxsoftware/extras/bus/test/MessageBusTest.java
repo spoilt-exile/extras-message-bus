@@ -153,4 +153,13 @@ public class MessageBusTest {
         MessageBus.clearBus();
     }
     
+    @Test
+    public void multiplieMessageCall() throws Exception {
+        Integer multiplied = MessageBus.fireCall(MULTIPLIE_MESSAGE, null, 
+                MessageOptions.Builder.newInstance()
+                        .header(ARG_MULTIPLIE_DIGIT1, "2")
+                        .header(ARG_MULTIPLIE_DIGIT2, "2").build(), 
+                Integer.class);
+        assertEquals(multiplied, new Integer(4));
+    }
 }
