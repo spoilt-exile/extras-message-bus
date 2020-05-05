@@ -33,6 +33,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 
 /**
@@ -95,7 +96,8 @@ public abstract class AbstractHttpSender {
     protected void setupMessageMode(MessageHolder message, HttpMessageEntry entry) {
         if (message.getOptions().isBroadcast()) {
             entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.BROADCAST.name());
-        } else if (message.getOptions().getCallback() != null) {
+        } else if (message.getOptions().getCallback() != null 
+                || message.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL) {
             entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.CALLBACK.name());
         } else {
             entry.getHeaders().put(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name());
