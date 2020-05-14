@@ -111,10 +111,10 @@ public class MessageBusInit {
                     node.setOfferTopics(config.getBridgeClient().getCrossConnectionsOffer());
                     node.setDemandTopics(config.getBridgeClient().getCrossConnectionsDemand());
                     
+                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC, new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsDemand()));
+                    
                     MessageBus.fire(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, node, 
                             MessageOptions.Builder.newInstance().async().broadcast().build());
-                    
-                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC, new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsDemand()));
                 }
             } else {
                 RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
