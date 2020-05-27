@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptor;
 
 /**
  * Tests storage cases.
@@ -72,6 +73,14 @@ public class DefaultStorageInterceptorTest {
         MessageBus.addSubscription(STORE_CALL_TOPIC, (message) -> {});
         MessageBus.fire(holder);
         Set<MessageHolder> messages = TestedInMemoryMessageStorage.instance.getMessagesByTopic(STORE_CALL_TOPIC);
+        assertTrue(messages.isEmpty());
+    }
+    
+    @Test
+    public void ignoreStorageHeaderTest() {
+        MessageHolder holder = new MessageHolder(STORE_TOPIC, MessageOptions.Builder.newInstance().header(StorageInterceptor.IGNORE_STORAGE_HEADER, null).deliveryNotification().sync().build(), null);
+        MessageBus.fire(holder);
+        Set<MessageHolder> messages = TestedInMemoryMessageStorage.instance.getUnprocessedMessagesByTopic(STORE_TOPIC);
         assertTrue(messages.isEmpty());
     }
     

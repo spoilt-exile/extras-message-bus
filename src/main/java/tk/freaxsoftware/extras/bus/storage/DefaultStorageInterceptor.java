@@ -97,6 +97,9 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
         if (holder.getTopic().matches(config.getTopicPattern())) {
             if (holder.getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.VOID
                     || (holder.getOptions().getDeliveryPolicy() == MessageOptions.DeliveryPolicy.CALL && config.getStoreCalls())) {
+                if (holder.getHeaders().containsKey(IGNORE_STORAGE_HEADER)) {
+                    return;
+                }
                 storage.saveMessage(holder);
             }
         }

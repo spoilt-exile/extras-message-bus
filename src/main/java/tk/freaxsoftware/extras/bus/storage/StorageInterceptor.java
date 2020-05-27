@@ -28,6 +28,11 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
 public interface StorageInterceptor {
     
     /**
+     * All message holders containing following header shouldn't be saved in storage.
+     */
+    public final static String IGNORE_STORAGE_HEADER = "Global.Storage.Ignore";
+    
+    /**
      * Saves messages to storage. May init additional processing.
      * @param holder message to save;
      */
