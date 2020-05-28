@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
 import tk.freaxsoftware.extras.bus.executor.MessageExecutorFactory;
@@ -212,6 +213,7 @@ public final class MessageBus {
                 rc.receive(holder);
                 holder.setStatus(MessageStatus.FINISHED);
                 init.getInterceptor().storeProcessedMessage(holder);
+                ExceptionServices.callback(holder.getResponse());
                 break;
             }
             if (holder.getStatus() != MessageStatus.FINISHED) {

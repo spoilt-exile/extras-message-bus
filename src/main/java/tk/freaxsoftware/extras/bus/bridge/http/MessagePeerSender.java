@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
-import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 
 /**
  * Message http messaging sender and receiver. Used for send messages from server node to subscribers.
@@ -161,7 +160,6 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
                 message.getResponse().setContent(response.getContent());
                 message.getResponse().setHeaders(response.getHeaders());
             }
-            ExceptionServices.callback(message.getResponse());
         }
     }
 
