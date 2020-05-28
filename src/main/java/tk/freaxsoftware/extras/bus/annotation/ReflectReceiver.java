@@ -19,6 +19,7 @@
 
 package tk.freaxsoftware.extras.bus.annotation;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.Receiver;
@@ -43,7 +44,11 @@ public class ReflectReceiver implements Receiver {
 
     @Override
     public void receive(MessageHolder message) throws Exception {
-        method.invoke(target, message);
+        try {
+            method.invoke(target, message);
+        } catch (InvocationTargetException tex) {
+            throw (Exception) tex.getCause();
+        }
     }
 
     public String[] getSubscriptions() {
