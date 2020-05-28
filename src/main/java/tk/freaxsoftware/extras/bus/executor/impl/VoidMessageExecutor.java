@@ -25,6 +25,7 @@ import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.Subscription;
+import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 import tk.freaxsoftware.extras.bus.executor.MessageExecutor;
 
 /**
@@ -50,6 +51,7 @@ public class VoidMessageExecutor extends MessageExecutor {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
+                    ExceptionServices.handle(holder.getResponse(), ex);
                 }
             });
         }

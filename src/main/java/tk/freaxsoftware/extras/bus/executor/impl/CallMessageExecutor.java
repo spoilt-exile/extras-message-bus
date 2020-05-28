@@ -26,6 +26,7 @@ import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.Subscription;
+import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.executor.MessageExecutor;
 
@@ -55,6 +56,7 @@ public class CallMessageExecutor extends MessageExecutor {
                     LOGGER.error("Receiver " + rc.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_HEADER, ex.getClass().getCanonicalName());
                     holder.getResponse().getHeaders().put(GlobalCons.G_EXCEPTION_MESSAGE_HEADER, ex.getMessage());
+                    ExceptionServices.handle(holder.getResponse(), ex);
                     if (holder.getStatus() != MessageStatus.FINISHED) {
                         holder.setStatus(MessageStatus.ERROR);
                         init.getInterceptor().storeMessage(holder);
