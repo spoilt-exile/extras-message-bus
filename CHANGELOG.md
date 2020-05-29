@@ -1,3 +1,16 @@
+# [5.1] - 29.05.2020
+ - Add `fireCall` method for direct sync calls;
+ - Add handlers and callbacks for correct exception info transferring via http bridge;
+ - Add filtration of the headers in http entity, it will filter out headers starts with `Trans` (transient);
+ - Add logging of the exceptions on redelivery and grouping jobs;
+ - Add new header `Global.Storage.Ignore` for storage to ignore messages with it;
+ - Fix issues with storage by adding deserialization adapter for ZonedDateTime in GSON;
+ - Fix bug in annotation tool when subscriber method use generic types;
+ - Fix serialization of message mode in http by making them strings;
+ - Fix sending http message mode;
+ - Fix crossconnection init by subscribing to `Local.Http.Message.CrossNodeUp` ahead of sending `Local.Http.Message.CrossNode`;
+ - Rethrow exception in reflect receiver, required for correct error handling;
+
 # [5.0] - 14.04.2020
  - Add possibility to store messages through adapter;
  - Message redelivery after several failed attempts (see message options);

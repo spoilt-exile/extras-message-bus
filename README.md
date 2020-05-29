@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round-robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *5.0*
+**Current version:** *5.1*
 
 ## Usage
 
@@ -44,6 +44,9 @@ MessageBus.fire("Test.Empty3", new Long(22), MessageOptions.Builder.newInstanc()
 MessageBus.fire("Test.Empty4", new Long(22), MessageOptions.Builder.newInstanc().header("SomeHeader", "value").async().callback((response) -> {
     System.out.println("Messsage callback after procession!")
 }).build());
+
+//Sync call with immediate return
+Order created = MessageBus.fireCall("Order.Create", Order newOrder, MessageOptions.Builder.newInstanc().build(), Order.class);
 ```
 
 ##### Available options for messages:
@@ -122,9 +125,13 @@ From 5.0 bus introduces cross connections. It allows to establish direct connect
 
 Bridge server and client config can be overrided by system properties if needed. Following properties available by now: `bridge.server.hearbeat`, `bridge.server.port`, `bridge.client.address` and `bridge.client.port`;
 
+During http bridging all headers will be copied, except those which starts with `Trans` (transient).
+
 From 5.0 message bus supports storing messages for redelivery, grouping and logging. It provides interface `MessageStorage` for further implementation. There is only one built-in implementation of storage: `tk.freaxsoftware.extras.bus.storage.InMemoryMessageStorage` but it's not recommened for production use.
 
 Redelivery of messages works only for `STORE` delivery policy (notifications). Call messages can be only stored (with response).
+
+If you don't want to store some message, just add header `Global.Storage.Ignore` and storege will ignore it.
 
 Grouping of messages allows to accumulate certain amount of messages and send it in batch. Useful for cases with frequent notifications.
 
