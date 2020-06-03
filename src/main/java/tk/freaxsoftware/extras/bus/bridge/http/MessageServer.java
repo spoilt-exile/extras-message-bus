@@ -77,6 +77,7 @@ public class MessageServer {
             switch (mode) {
                 case BROADCAST:
                     options = MessageOptions.Builder.newInstance().deliveryNotification().broadcast().headers(entry.getHeaders()).build();
+                    holder.setRedeliveryCounter(options.getRedeliveryCounter());
                     break;
                 case CALLBACK:
                     options = MessageOptions.Builder.newInstance().deliveryCall().headers(entry.getHeaders()).callback((messageResponse) -> {
