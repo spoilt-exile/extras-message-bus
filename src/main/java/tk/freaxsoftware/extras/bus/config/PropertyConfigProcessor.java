@@ -34,22 +34,22 @@ public class PropertyConfigProcessor {
         /**
          * Set heartbeat rate for bridge server.
          */
-        BRIDGE_SERVER_HEART_BEAT_RATE("bridge.server.hearbeat", (config, property) -> {config.getBridgeServer().setHeartbeatRate(getPropertyAsInt(property));}),
+        BRIDGE_SERVER_HEART_BEAT_RATE("BRIDGE_SERVER_HEARTBEAT_RATE", (config, property) -> {config.getBridgeServer().setHeartbeatRate(getPropertyAsInt(property));}),
         
         /**
          * Set http port for server.
          */
-        BRIDGE_SERVER_HTTP_PORT("bridge.server.port", (config, property) -> {config.getBridgeServer().setHttpPort(getPropertyAsInt(property));}),
+        BRIDGE_SERVER_HTTP_PORT("BRIDGE_SERVER_PORT", (config, property) -> {config.getBridgeServer().setHttpPort(getPropertyAsInt(property));}),
         
         /**
          * Set address for server to connect.
          */
-        BRIDGE_CLIENT_ADDRESS("bridge.client.address", (config, property) -> {config.getBridgeClient().setAddress(System.getProperty(property));}),
+        BRIDGE_CLIENT_ADDRESS("BRIDGE_CLIENT_ADDRESS", (config, property) -> {config.getBridgeClient().setAddress(System.getenv(property));}),
         
         /**
          * Set http port for client to comminicate with server.
          */
-        BRIDGE_CLIENT_PORT("bridge.client.port", (config, property) -> {config.getBridgeClient().setPort(getPropertyAsInt(property));});
+        BRIDGE_CLIENT_PORT("BRIDGE_CLIENT_PORT", (config, property) -> {config.getBridgeClient().setPort(getPropertyAsInt(property));});
         
         private final String propertyId;
 
@@ -69,7 +69,7 @@ public class PropertyConfigProcessor {
         }
         
         public static Integer getPropertyAsInt(String property) {
-            return Integer.getInteger(property);
+            return Integer.parseInt(System.getenv(property));
         }
     }
     
@@ -95,7 +95,7 @@ public class PropertyConfigProcessor {
     }
     
     private static Boolean isPropertyAvailable(String property) {
-        return System.getProperties().containsKey(property);
+        return System.getenv().containsKey(property);
     }
     
 }
