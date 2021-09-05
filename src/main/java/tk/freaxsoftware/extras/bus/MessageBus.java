@@ -258,4 +258,12 @@ public final class MessageBus {
     public static void init() {
         init.ensureInit();
     }
+    
+    /**
+     * Get message bus init service.
+     * @return init service;
+     */
+    public static MessageBusInit getInit() {
+        return init;
+    }
 }
