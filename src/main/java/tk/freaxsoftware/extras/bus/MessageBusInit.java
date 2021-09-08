@@ -63,11 +63,6 @@ public class MessageBusInit {
     private StorageInterceptor interceptor;
     
     /**
-     * Remote subscription receiver (available only on main node).
-     */
-    private RemoteSubscriptionReceiver remoteSubscriber;
-    
-    /**
      * Inits message bus config and additional components. Trying to read 
      * default config {@code bus_default.json} in main resources folder at first. 
      * Also it reads {@code bus.json} standard configuration file in resources. 
@@ -122,7 +117,7 @@ public class MessageBusInit {
                             MessageOptions.Builder.newInstance().async().broadcast().build());
                 }
             } else {
-                remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
+                RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC, remoteSubscriber);
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC, remoteSubscriber);
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, remoteSubscriber);
@@ -165,9 +160,5 @@ public class MessageBusInit {
 
     public StorageInterceptor getInterceptor() {
         return interceptor;
-    }
-
-    public RemoteSubscriptionReceiver getRemoteSubscriber() {
-        return remoteSubscriber;
     }
 }

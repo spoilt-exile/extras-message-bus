@@ -1,6 +1,3 @@
-# [5.3] - 05.09.2021
- - Extended API for working with HTTP bridging;
-
 # [5.2] - 04.06.2020
  - Add init of redelivery count for broadcast messages;
  - Fix overriding by environment variables;

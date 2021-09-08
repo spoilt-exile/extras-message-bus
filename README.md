@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round-robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *5.3*
+**Current version:** *5.1*
 
 ## Usage
 
@@ -170,4 +170,4 @@ Also `AnnotationUtil` provides opposite methods to unsubscribe instances and cla
 
 Library distributed under terms of GNU LGPLv3 license.
 
-**© Freax Software 2021**
+**© Freax Software 2020**

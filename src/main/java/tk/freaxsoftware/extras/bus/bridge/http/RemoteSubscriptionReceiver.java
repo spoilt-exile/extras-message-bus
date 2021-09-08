@@ -141,19 +141,4 @@ public class RemoteSubscriptionReceiver implements Receiver {
         }
     }
     
-    /**
-     * Force remote node to subscibe for specified topic.
-     * @param nodeIp ip address of the node;
-     * @param nodePort port of the node;
-     * @param topic topic for subscription;
-     */
-    public void subscibeRemoteNode(String nodeIp, Integer nodePort, String topic) {
-        String nodeKey = nodeIp + ":" + nodePort;
-        MessagePeerSender peerSender = this.senderMap.get(nodeKey);
-        if (peerSender != null) {
-            MessageBus.addSubscription(topic, peerSender);
-            peerSender.addSubscription(topic);
-        }
-    }
-    
 }
