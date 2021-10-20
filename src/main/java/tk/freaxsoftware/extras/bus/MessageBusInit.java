@@ -63,8 +63,8 @@ public class MessageBusInit {
     private StorageInterceptor interceptor;
     
     /**
-     * Inits message bus config and additional components. Trying to read 
-     * default config {@code bus_default.json} in main resources folder at first. 
+     * Inits message bus config and additional components. 
+     * Trying to read default config {@code bus_default.json} in main resources folder at first. 
      * Also it reads {@code bus.json} standard configuration file in resources. 
      * Standard config has priority over defaults.<br/>
      * <br/>
@@ -78,14 +78,15 @@ public class MessageBusInit {
      * <li>Establish HTTP client sender (if server and client both configured) or creating instance of {@code RemoteSubscriptionReceiver};</li>
      * <li>Init storage (if configured);</li>
      * </ol>
+     * @param configFileName filename of the config to load;
      */
-    protected void ensureInit() {
+    protected void ensureInit(String configFileName) {
         if (config != null) {
             return;
         }
         LOGGER.info("Init message bus");
         MessageBusConfig defaultConfig = readDefault();
-        MessageBusConfig standardConfig = readStandard();
+        MessageBusConfig standardConfig = readStandard(configFileName);
         
         config = standardConfig == null ? defaultConfig : standardConfig;
         PropertyConfigProcessor.process(config);
@@ -135,9 +136,9 @@ public class MessageBusInit {
         return readConfig(jsonReader);
     }
     
-    private MessageBusConfig readStandard() {
+    private MessageBusConfig readStandard(String configFileName) {
         try {
-            Reader jsonReader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream("bus.json"));
+            Reader jsonReader = new InputStreamReader(getClass().getClassLoader().getResourceAsStream(configFileName));
             return readConfig(jsonReader);
         } catch (Exception ex) {
             LOGGER.error("Unable to read standard config!", ex);

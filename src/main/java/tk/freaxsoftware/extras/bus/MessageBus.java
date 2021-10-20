@@ -256,6 +256,14 @@ public final class MessageBus {
      * Init message bus. Need to call just once.
      */
     public static void init() {
-        init.ensureInit();
+        init.ensureInit("bus.json");
+    }
+    
+    /**
+     * Init message bus with custom config.Need to call just once.
+     * @param configFileName filename of the config to load;
+     */
+    public static void init(String configFileName) {
+        init.ensureInit(configFileName);
     }
 }
