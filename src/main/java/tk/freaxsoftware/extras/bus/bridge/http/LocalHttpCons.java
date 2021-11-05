@@ -61,11 +61,6 @@ public class LocalHttpCons {
     public static final String L_HTTP_CROSS_NODE_UP_TOPIC = "Local.Http.Message.CrossNodeUp";
     
     /**
-     * Notifies when central node detects node with cross connections is down. Dynamic format.
-     */
-    public static final String L_HTTP_CROSS_NODE_DOWN_TOPIC_FORMAT = "Local.Http.Message.CrossNodeDown.%s:%s";
-    
-    /**
      * Notifies when central node detects node with cross connections is down.
      */
     public static final String L_HTTP_CROSS_NODE_DOWN_TOPIC = "Local.Http.Message.CrossNodeDown";

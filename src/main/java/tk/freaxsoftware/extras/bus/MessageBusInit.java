@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.annotation.AnnotationUtil;
 import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageClientSender;
 import tk.freaxsoftware.extras.bus.bridge.http.MessageServer;
@@ -104,21 +105,23 @@ public class MessageBusInit {
                 if (config.getBridgeClient().getAdditionalSubscriptions() != null && config.getBridgeClient().getAdditionalSubscriptions().length > 0) {
                     MessageBus.addSubscriptions(config.getBridgeClient().getAdditionalSubscriptions(), clientSender);
                 }
-                if (config.getBridgeClient().getCrossConnectionsDemand() != null 
-                        && config.getBridgeClient().getCrossConnectionsOffer() != null) {
+                if (config.getBridgeClient().getCrossConnectionsSends() != null 
+                        && config.getBridgeClient().getCrossConnectionsReceives() != null) {
                     MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, clientSender);
                     CrossNode node = new CrossNode();
                     node.setNodePort(config.getBridgeServer().isNested() ? spark.Spark.port() : config.getBridgeServer().getHttpPort());
-                    node.setOfferTopics(config.getBridgeClient().getCrossConnectionsOffer());
-                    node.setDemandTopics(config.getBridgeClient().getCrossConnectionsDemand());
+                    node.setReceiveTopics(config.getBridgeClient().getCrossConnectionsReceives());
+                    node.setSendTopics(config.getBridgeClient().getCrossConnectionsSends());
                     
-                    MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC, new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsDemand()));
+                    AnnotationUtil.subscribeReceiverInstance(new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsSends()));
                     
                     MessageBus.fire(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, node, 
                             MessageOptions.Builder.newInstance().async().broadcast().build());
                 }
             } else {
-                RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null ? new RemoteSubscriptionReceiver(config.getBridgeServer().getHeartbeatRate()) : new RemoteSubscriptionReceiver();
+                RemoteSubscriptionReceiver remoteSubscriber = config.getBridgeServer().getHeartbeatRate() != null 
+                        ? new RemoteSubscriptionReceiver(config.getBridgeServer().getCrossConnections(), config.getBridgeServer().getHeartbeatRate()) 
+                        : new RemoteSubscriptionReceiver(config.getBridgeServer().getCrossConnections());
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_SUBSCRIBE_TOPIC, remoteSubscriber);
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_UNSUBSCRIBE_TOPIC, remoteSubscriber);
                 MessageBus.addSubscription(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, remoteSubscriber);

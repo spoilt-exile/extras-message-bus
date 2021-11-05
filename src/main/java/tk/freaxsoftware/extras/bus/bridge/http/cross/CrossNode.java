@@ -32,18 +32,23 @@ public class CrossNode {
     
     private Integer nodePort;
     
-    private String[] offerTopics;
+    private String[] receiveTopics;
     
-    private String[] demandTopics;
+    private String[] sendTopics;
 
     public CrossNode() {
     }
 
-    public CrossNode(String nodeIp, Integer nodePort, String[] offerTopics, String[] demandTopics) {
+    public CrossNode(String nodeIp, Integer nodePort) {
         this.nodeIp = nodeIp;
         this.nodePort = nodePort;
-        this.offerTopics = offerTopics;
-        this.demandTopics = demandTopics;
+    }
+
+    public CrossNode(String nodeIp, Integer nodePort, String[] receiveTopics, String[] sendTopics) {
+        this.nodeIp = nodeIp;
+        this.nodePort = nodePort;
+        this.receiveTopics = receiveTopics;
+        this.sendTopics = sendTopics;
     }
 
     public String getNodeIp() {
@@ -62,20 +67,20 @@ public class CrossNode {
         this.nodePort = nodePort;
     }
 
-    public String[] getOfferTopics() {
-        return offerTopics;
+    public String[] getReceiveTopics() {
+        return receiveTopics;
     }
 
-    public void setOfferTopics(String[] offerTopics) {
-        this.offerTopics = offerTopics;
+    public void setReceiveTopics(String[] receiveTopics) {
+        this.receiveTopics = receiveTopics;
     }
 
-    public String[] getDemandTopics() {
-        return demandTopics;
+    public String[] getSendTopics() {
+        return sendTopics;
     }
 
-    public void setDemandTopics(String[] demandTopics) {
-        this.demandTopics = demandTopics;
+    public void setSendTopics(String[] sendTopics) {
+        this.sendTopics = sendTopics;
     }
 
     @Override
@@ -104,10 +109,10 @@ public class CrossNode {
         if (!Objects.equals(this.nodePort, other.nodePort)) {
             return false;
         }
-        if (!Arrays.deepEquals(this.offerTopics, other.offerTopics)) {
+        if (!Arrays.deepEquals(this.receiveTopics, other.receiveTopics)) {
             return false;
         }
-        if (!Arrays.deepEquals(this.demandTopics, other.demandTopics)) {
+        if (!Arrays.deepEquals(this.sendTopics, other.sendTopics)) {
             return false;
         }
         return true;
