@@ -24,6 +24,8 @@ package tk.freaxsoftware.extras.bus.config.http;
  */
 public class ClientConfig {
     
+    private String tag;
+    
     private String address;
     
     private Integer port;
@@ -35,6 +37,14 @@ public class ClientConfig {
     private String[] crossConnectionsReceives;
     
     private String[] crossConnectionsSends;
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 
     public String getAddress() {
         return address;

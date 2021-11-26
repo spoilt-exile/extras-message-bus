@@ -28,6 +28,8 @@ import java.util.Objects;
  */
 public class CrossNode {
     
+    private String tag;
+    
     private String nodeIp;
     
     private Integer nodePort;
@@ -49,6 +51,14 @@ public class CrossNode {
         this.nodePort = nodePort;
         this.receiveTopics = receiveTopics;
         this.sendTopics = sendTopics;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public String getNodeIp() {
@@ -103,6 +113,9 @@ public class CrossNode {
             return false;
         }
         final CrossNode other = (CrossNode) obj;
+        if (!Objects.equals(this.tag, other.tag)) {
+            return false;
+        }
         if (!Objects.equals(this.nodeIp, other.nodeIp)) {
             return false;
         }

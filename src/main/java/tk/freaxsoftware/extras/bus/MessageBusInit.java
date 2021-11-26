@@ -132,6 +132,7 @@ public class MessageBusInit {
                     node.setNodePort(config.getBridgeServer().isNested() ? spark.Spark.port() : config.getBridgeServer().getHttpPort());
                     node.setReceiveTopics(config.getBridgeClient().getCrossConnectionsReceives());
                     node.setSendTopics(config.getBridgeClient().getCrossConnectionsSends());
+                    node.setTag(config.getBridgeClient().getTag());
                     
                     AnnotationUtil.subscribeReceiverInstance(new CrossConnectionInit(config.getBridgeClient().getCrossConnectionsSends()));
                     
