@@ -51,8 +51,8 @@ public class CrossConnectionInit {
         CrossNode node = message.getContent();
         String[] crossConnectionTopics = findCrossConnections(node.getReceiveTopics());
         if (crossConnectionTopics.length > 0) {
-            LOGGER.warn("Init cross connection to node {} port {} with topic to send {}.", 
-                    node.getNodeIp(), node.getNodePort(), crossConnectionTopics);
+            LOGGER.warn("Init cross connection to node {} ip {} port {} with topic to send {}.", 
+                    node.getTag(), node.getNodeIp(), node.getNodePort(), crossConnectionTopics);
             CrossConnectionSender sender = new CrossConnectionSender(node.getNodeIp(), node.getNodePort());
             MessageBus.addSubscriptions(crossConnectionTopics, sender);
             sender.addSubscriptions(new HashSet(Arrays.asList(crossConnectionTopics)));
@@ -67,8 +67,8 @@ public class CrossConnectionInit {
         for (CrossConnectionSender crossSender: senders) {
             if (Objects.equals(crossSender.getAddress(), node.getNodeIp()) 
                     && Objects.equals(crossSender.getPort(), node.getNodePort())) {
-                LOGGER.warn("Closing cross connection to node {} port {} with topics {}.",
-                        crossSender.getAddress(), crossSender.getPort(), crossSender.getSubscriptions());
+                LOGGER.warn("Closing cross connection to node {} ip {} port {} with topics {}.",
+                        node.getTag(), crossSender.getAddress(), crossSender.getPort(), crossSender.getSubscriptions());
                 MessageBus.removeSubscriptions(crossSender.getSubscriptions(), crossSender);
                 senderToDelete = crossSender;
                 break;
