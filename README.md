@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round-robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *5.1*
+**Current version:** *5.3*
 
 ## Usage
 
@@ -87,10 +87,10 @@ Example:
             "TEST",
             "TEST2",
         ],
-        "crossConnectionsOffer": [ //List of topics to offer cross connections to other peers;
+        "crossConnectionsReceives": [ //List of topics which sends by current peer;
             "Cross.TEST3"
         ],
-        "crossConnectionsDemand": [ //List of topics to demand for cross connections from other peers;
+        "crossConnectionsSends": [ //List of topics whic can be recieved by current peer;
             "Cross.TEST4"
         ]
     },

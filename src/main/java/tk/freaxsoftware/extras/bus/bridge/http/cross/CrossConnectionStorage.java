@@ -70,5 +70,8 @@ public class CrossConnectionStorage implements Receiver<CrossNode> {
         }
         return false;
     }
-    
+
+    public Set<CrossNode> getNodes() {
+        return nodes;
+    }
 }
