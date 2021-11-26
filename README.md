@@ -83,6 +83,7 @@ Example:
         "address": "127.0.0.1", //Address of the server;
         "port": 8080, //Port of the server;
         "heartbeatRate": 10, //Heart beat rate in seconds;
+        "tag": "node", //Current node tag, used for node identification;
         "additionalSubscriptions": [ //Make additional subscriptions to send on server;
             "TEST",
             "TEST2",
