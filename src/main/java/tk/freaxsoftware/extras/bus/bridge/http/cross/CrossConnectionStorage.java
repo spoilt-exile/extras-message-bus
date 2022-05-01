@@ -44,7 +44,7 @@ public class CrossConnectionStorage implements Receiver<CrossNode> {
     public void receive(MessageHolder<CrossNode> message) throws Exception {
         CrossNode newNode = message.getContent();
         newNode.setNodeIp((String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER));
-        LOGGER.info("Processing node {} ip {} port {};", newNode.getTag(), newNode.getNodeIp(), newNode.getNodePort());
+        LOGGER.info("Processing node {} ip {} port {} receives [{}], sends [{}];", newNode.getTag(), newNode.getNodeIp(), newNode.getNodePort(), newNode.getReceiveTopics(), newNode.getSendTopics());
         for (CrossNode node: nodes) {
             if (isCrossConnection(newNode.getReceiveTopics(), node.getSendTopics())) {
                 MessageBus.fire(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
