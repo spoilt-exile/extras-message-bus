@@ -24,6 +24,8 @@ package tk.freaxsoftware.extras.bus.config.http;
  */
 public class ClientConfig {
     
+    private String tag;
+    
     private String address;
     
     private Integer port;
@@ -32,9 +34,17 @@ public class ClientConfig {
     
     private String[] additionalSubscriptions;
     
-    private String[] crossConnectionsOffer;
+    private String[] crossConnectionsReceives;
     
-    private String[] crossConnectionsDemand;
+    private String[] crossConnectionsSends;
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 
     public String getAddress() {
         return address;
@@ -68,19 +78,19 @@ public class ClientConfig {
         this.additionalSubscriptions = additionalSubscriptions;
     }
 
-    public String[] getCrossConnectionsOffer() {
-        return crossConnectionsOffer;
+    public String[] getCrossConnectionsReceives() {
+        return crossConnectionsReceives;
     }
 
-    public void setCrossConnectionsOffer(String[] crossConnectionsOffer) {
-        this.crossConnectionsOffer = crossConnectionsOffer;
+    public void setCrossConnectionsReceives(String[] crossConnectionsReceives) {
+        this.crossConnectionsReceives = crossConnectionsReceives;
     }
 
-    public String[] getCrossConnectionsDemand() {
-        return crossConnectionsDemand;
+    public String[] getCrossConnectionsSends() {
+        return crossConnectionsSends;
     }
 
-    public void setCrossConnectionsDemand(String[] crossConnectionsDemand) {
-        this.crossConnectionsDemand = crossConnectionsDemand;
+    public void setCrossConnectionsSends(String[] crossConnectionsSends) {
+        this.crossConnectionsSends = crossConnectionsSends;
     }
 }

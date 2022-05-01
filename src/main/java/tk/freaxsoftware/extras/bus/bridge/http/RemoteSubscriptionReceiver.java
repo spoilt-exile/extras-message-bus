@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageOptions;
 import tk.freaxsoftware.extras.bus.Receiver;
+import tk.freaxsoftware.extras.bus.bridge.http.cross.CrossNode;
 
 /**
  * Remote subscription manager. Listens for remove subscribe/unsubscribe messages and creates 
@@ -47,14 +49,17 @@ public class RemoteSubscriptionReceiver implements Receiver {
      */
     private final Map<String, MessagePeerSender> senderMap;
     
+    private final Boolean crossConnectionsEnabled;
+    
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
 
-    public RemoteSubscriptionReceiver() {
+    public RemoteSubscriptionReceiver(Boolean crossConnectionsEnabled) {
         senderMap = new ConcurrentHashMap<>();
+        this.crossConnectionsEnabled = crossConnectionsEnabled;
     }
     
-    public RemoteSubscriptionReceiver(Integer heartBeatMaxAge) {
-        this();
+    public RemoteSubscriptionReceiver(Boolean crossConnectionsEnabled, Integer heartBeatMaxAge) {
+        this(crossConnectionsEnabled);
         if (heartBeatMaxAge > 0) {
             LOGGER.info(String.format("Creating remote receiver with heartbeat: %d", heartBeatMaxAge));
             threadService.submit(new Runnable() {
@@ -68,6 +73,13 @@ public class RemoteSubscriptionReceiver implements Receiver {
                                 MessageBus.removeSubscription(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
                                     senderEntry.getValue().getAddress(), senderEntry.getValue().getPort()), senderEntry.getValue());
                                 senderMap.remove(senderEntry.getKey());
+                                if (crossConnectionsEnabled) {
+                                    MessageBus.fire(LocalHttpCons.L_HTTP_CROSS_NODE_DOWN_TOPIC, 
+                                            new CrossNode(senderEntry.getValue().getAddress(), 
+                                                    senderEntry.getValue().getPort()), 
+                                            MessageOptions.Builder.newInstance()
+                                                    .deliveryNotification().build());
+                                }
                             }
                         }
                         try {

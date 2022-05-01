@@ -44,14 +44,14 @@ public class CrossConnectionStorage implements Receiver<CrossNode> {
     public void receive(MessageHolder<CrossNode> message) throws Exception {
         CrossNode newNode = message.getContent();
         newNode.setNodeIp((String) message.getHeaders().get(LocalHttpCons.L_HTTP_NODE_IP_HEADER));
-        LOGGER.info("Processing node {} port {};", newNode.getNodeIp(), newNode.getNodePort());
+        LOGGER.info("Processing node {} ip {} port {} receives [{}], sends [{}];", newNode.getTag(), newNode.getNodeIp(), newNode.getNodePort(), newNode.getReceiveTopics(), newNode.getSendTopics());
         for (CrossNode node: nodes) {
-            if (isCrossConnection(newNode.getOfferTopics(), node.getDemandTopics())) {
+            if (isCrossConnection(newNode.getReceiveTopics(), node.getSendTopics())) {
                 MessageBus.fire(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
                         node.getNodeIp(), node.getNodePort()), newNode, 
                         MessageOptions.Builder.newInstance().async().pointToPoint().build());
             }
-            if (isCrossConnection(newNode.getDemandTopics(), node.getOfferTopics())) {
+            if (isCrossConnection(newNode.getSendTopics(), node.getReceiveTopics())) {
                 MessageBus.fire(String.format(LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC_FORMAT, 
                         newNode.getNodeIp(), newNode.getNodePort()), node, 
                         MessageOptions.Builder.newInstance().async().pointToPoint().build());
@@ -60,15 +60,18 @@ public class CrossConnectionStorage implements Receiver<CrossNode> {
         nodes.add(newNode);
     }
     
-    private Boolean isCrossConnection(String[] offers, String[] demands) {
-        for (String offer: offers) {
-            for (String demand: demands) {
-                if (Objects.equals(offer, demand)) {
+    private Boolean isCrossConnection(String[] receives, String[] sends) {
+        for (String receive: receives) {
+            for (String send: sends) {
+                if (Objects.equals(receive, send)) {
                     return true;
                 }
             }
         }
         return false;
     }
-    
+
+    public Set<CrossNode> getNodes() {
+        return nodes;
+    }
 }

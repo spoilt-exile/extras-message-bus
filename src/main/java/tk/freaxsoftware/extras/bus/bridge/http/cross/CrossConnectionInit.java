@@ -26,42 +26,65 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
-import tk.freaxsoftware.extras.bus.Receiver;
+import tk.freaxsoftware.extras.bus.annotation.Receive;
+import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 
 /**
  * Cross conecction init for clients.
  * @author Stanislav Nepochatov
  * @since 5.0
  */
-public class CrossConnectionInit implements Receiver<CrossNode> {
+public class CrossConnectionInit {
     
     private final static Logger LOGGER = LoggerFactory.getLogger(CrossConnectionInit.class);
     
-    private final String[] demandsTopics;
+    private final String[] sendsTopics;
+    
+    private final Set<CrossConnectionSender> senders = new HashSet();
 
-    public CrossConnectionInit(String[] demandsTopics) {
-        this.demandsTopics = demandsTopics;
+    public CrossConnectionInit(String[] sendsTopics) {
+        this.sendsTopics = sendsTopics;
     }
 
-    @Override
-    public void receive(MessageHolder<CrossNode> message) throws Exception {
+    @Receive(value = {LocalHttpCons.L_HTTP_CROSS_NODE_UP_TOPIC})
+    public void crossNodeUp(MessageHolder<CrossNode> message) throws Exception {
         CrossNode node = message.getContent();
-        String[] crossConnectionTopics = findCrossConnections(node.getOfferTopics());
+        String[] crossConnectionTopics = findCrossConnections(node.getReceiveTopics());
         if (crossConnectionTopics.length > 0) {
-            LOGGER.warn("Init cross connection to node {} port {} with topic subscriptions {}.", 
-                    node.getNodeIp(), node.getNodePort(), crossConnectionTopics);
+            LOGGER.warn("Init cross connection to node {} ip {} port {} with topic to send {}.", 
+                    node.getTag(), node.getNodeIp(), node.getNodePort(), crossConnectionTopics);
             CrossConnectionSender sender = new CrossConnectionSender(node.getNodeIp(), node.getNodePort());
             MessageBus.addSubscriptions(crossConnectionTopics, sender);
             sender.addSubscriptions(new HashSet(Arrays.asList(crossConnectionTopics)));
+            senders.add(sender);
         }
     }
     
-    private String[] findCrossConnections(String[] nodeOfferTopics) {
+    @Receive(value = {LocalHttpCons.L_HTTP_CROSS_NODE_DOWN_TOPIC})
+    public void crossNodeDown(MessageHolder<CrossNode> message) {
+        CrossNode node = message.getContent();
+        CrossConnectionSender senderToDelete = null;
+        for (CrossConnectionSender crossSender: senders) {
+            if (Objects.equals(crossSender.getAddress(), node.getNodeIp()) 
+                    && Objects.equals(crossSender.getPort(), node.getNodePort())) {
+                LOGGER.warn("Closing cross connection to node {} ip {} port {} with topics {}.",
+                        node.getTag(), crossSender.getAddress(), crossSender.getPort(), crossSender.getSubscriptions());
+                MessageBus.removeSubscriptions(crossSender.getSubscriptions(), crossSender);
+                senderToDelete = crossSender;
+                break;
+            }
+        }
+        if (senderToDelete != null) {
+            senders.remove(senderToDelete);
+        }
+    }
+    
+    private String[] findCrossConnections(String[] nodeReceiveTopics) {
         Set<String> cross = new HashSet<>();
-        for (String demand: demandsTopics) {
-            for (String offer: nodeOfferTopics) {
-                if (Objects.equals(offer, demand)) {
-                    cross.add(offer);
+        for (String send: sendsTopics) {
+            for (String receive: nodeReceiveTopics) {
+                if (Objects.equals(receive, send)) {
+                    cross.add(receive);
                 }
             }
         }
