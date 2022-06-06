@@ -110,7 +110,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     private void setupEntry(MessageHolder message, HttpMessageEntry entry) {
         setupMessageMode(message, entry);
         //Add header with this node server port for back comminication.
-        entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_PORT_HEADER, serverConfig.isNested() ? String.valueOf(spark.Spark.port()) : serverConfig.getHttpPort().toString());
+        entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_PORT_HEADER, serverConfig.getHttpPort().toString());
         //Override if subscription message.
         if (entry.getTopic().equals(GlobalCons.G_SUBSCRIBE_TOPIC)) {
             subscriptions.add((String) entry.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER));

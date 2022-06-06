@@ -18,20 +18,17 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.javalin.Javalin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Request;
-import spark.Response;
-import static spark.Spark.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageContext;
 import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
-import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonMapper;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
 
 /**
@@ -48,28 +45,20 @@ public class MessageServer {
     private final HttpMessageEntryUtil messageUtil = new HttpMessageEntryUtil();
     
     /**
-     * Gson instance.
-     */
-    private final Gson gson = GsonUtils.getGson();
-    
-    /**
      * Deploy spark endpoint for message listening. It will config spark if config not nested.
      * @param config server config;
      */
     public void init(ServerConfig config) {
-        if (!config.isNested()) {
-            LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
-            threadPool(config.getSparkThreadPoolMaxSize());
-            port(config.getHttpPort());
-        } else {
-            LOGGER.info("Using nested Spark instance.");
-        }
+        LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
+        Javalin app = Javalin.create(javalinConfig -> {
+            javalinConfig.jsonMapper(new GsonMapper());
+        }).start(7070);
         
-        post(LocalHttpCons.L_HTTP_URL, "application/json", (Request req, Response res) -> {
-            JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
+        app.post(LocalHttpCons.L_HTTP_URL, ctx -> {
+            JsonObject bodyJson = new JsonParser().parse(ctx.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
             MessageContextHolder.setContext(new MessageContext(entry.getTrxId()));
-            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, ctx.ip());
             LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();
             MessageOptions options;
@@ -90,12 +79,11 @@ public class MessageServer {
             holder.setOptions(options);
             MessageBus.fire(holder);
             if (response.getTopic() != null) {
-                return response;
+                ctx.json(response);
             } else {
-                res.status(200);
-                return "";
+                ctx.status(200);
             }
-        }, gson::toJson);
+        });
     }
     
 }
