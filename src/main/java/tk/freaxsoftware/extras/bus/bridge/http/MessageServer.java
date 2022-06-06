@@ -52,7 +52,7 @@ public class MessageServer {
         LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
         Javalin app = Javalin.create(javalinConfig -> {
             javalinConfig.jsonMapper(new GsonMapper());
-        }).start(7070);
+        }).start(config.getHttpPort());
         
         app.post(LocalHttpCons.L_HTTP_URL, ctx -> {
             JsonObject bodyJson = new JsonParser().parse(ctx.body()).getAsJsonObject();
