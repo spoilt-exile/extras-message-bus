@@ -22,9 +22,11 @@ package tk.freaxsoftware.extras.bus;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC;
 import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
@@ -47,6 +49,11 @@ public final class MessageBus {
      * Message bus init util.
      */
     private static MessageBusInit init = new MessageBusInit();
+    
+    /**
+     * Set of topic names to filter out from logging.
+     */
+    private static final Set<String> filterLogTopics = Set.of(L_HTTP_HEARTBEAT_TOPIC);
     
     /**
      * Subscribe receiver for message with following topic.
@@ -163,7 +170,9 @@ public final class MessageBus {
      */
     public static <T> void fire(final String topic, final T content, final MessageOptions options) {
         MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-        LOGGER.info("Message with topic {} fired to bus", topic);
+        if (!filterLogTopics.contains(topic)) {
+            LOGGER.info("Message with topic {} fired to bus", topic);
+        }
         fire(holder);
     }
     

@@ -128,10 +128,14 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
         @Override
         public void run() {
             LOGGER.info("Redelivery job started with period {} seconds", redeliveryPeriod);
+            int redeliverySize = 0;
             while (true) {
                 try {
                     Set<MessageHolder> holders = storage.getUnprocessedMessages();
-                    LOGGER.info("Redelivery entries batch size {}", holders.size());
+                    if (redeliverySize != holders.size()) {
+                        LOGGER.info("Redelivery entries batch size {}", holders.size());
+                        redeliverySize = holders.size();
+                    }
                     for (MessageHolder holder: holders) {
                         if ((config.getRedeliveryOnlyIfReceiversExists() && MessageBus.isSubscribed(holder.getTopic())) 
                                     || !config.getRedeliveryOnlyIfReceiversExists()) {
