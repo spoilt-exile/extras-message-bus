@@ -5,7 +5,7 @@ Basic message bus service. Suport sync and async message delivery. Point-to-poin
 messaging with round-robin and broadcasting. Message callbacks to delivery results 
 of message processing (for point-to-point only). 
 
-**Current version:** *5.3*
+**Current version:** *6.0*
 
 ## Usage
 
@@ -73,9 +73,7 @@ Example:
         "threadCount": 8 //Number or workers (for async messaging);
     },
     "bridgeServer": { //HTTP bridge server config;
-        "nested": false,  //Use nested SPARK JAVA server;
-        "httpPort": 4444, //Server port (for own SPARK instance);
-        "sparkThreadPoolMaxSize": 16, //Size of SPARK thread pool (for own SPARK instance);
+        "httpPort": 4444, //Server port;
         "heartbeatRate": 15, //Heart beat rate in seconds;
         "crossConnections": true //Enable cross connections;
     },
@@ -171,4 +169,4 @@ Also `AnnotationUtil` provides opposite methods to unsubscribe instances and cla
 
 Library distributed under terms of GNU LGPLv3 license.
 
-**© Freax Software 2020**
+**© Freax Software 2015-2022**

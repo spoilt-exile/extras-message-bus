@@ -33,12 +33,15 @@ import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
  */
 public class AnnotationUtilTest {
     
+    private TestReceiver testReceiver;
+    
     public AnnotationUtilTest() {
     }
     
     @Before
     public void setUp() throws InstantiationException, IllegalAccessException {
-        AnnotationUtil.subscribeReceiverClass(TestReceiver.class);
+        testReceiver = new TestReceiver();
+        AnnotationUtil.subscribeReceiverInstance(testReceiver);
     }
     
     @After
@@ -48,10 +51,12 @@ public class AnnotationUtilTest {
     }
     
     @Test
-    public void testMessage() {
+    public void testMessage() throws Exception {
         MessageBus.fire(TestReceiver.TEST_MESSAGE, null, MessageOptions.Builder.newInstance().deliveryCall().callback((res) -> {
             Assert.assertNotNull(res.getContent());
         }).build());
+        Thread.sleep(1000);
+        Assert.assertTrue(testReceiver.calledPattern);
     }
     
     @Test(expected = NoSubscriptionMessageException.class)

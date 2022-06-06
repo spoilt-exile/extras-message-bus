@@ -66,4 +66,8 @@ public class BlockExecutor {
         threadService.submit(() -> block.exec());
     }
     
+    public void executeAsync(Runnable runnable) {
+        threadService.submit(runnable);
+    }
+    
 }

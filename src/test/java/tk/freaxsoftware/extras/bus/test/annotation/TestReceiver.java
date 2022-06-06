@@ -31,6 +31,10 @@ public class TestReceiver {
     
     public static final String TEST_MESSAGE_ERROR = "Org.Reflection.Test.Error";
     
+    public static final String TEST_PATTERN_MESSAGE = "Org.Reflection.*";
+    
+    public volatile Boolean calledPattern = false;
+    
     @Receive(TEST_MESSAGE)
     public void test(MessageHolder message) {
         message.getResponse().setContent(new Object());
@@ -39,6 +43,11 @@ public class TestReceiver {
     @Receive(TEST_MESSAGE_ERROR)
     public void testError(Object content) {
         
+    }
+    
+    @Receive(TEST_PATTERN_MESSAGE)
+    public void testPattern(MessageHolder message) {
+        calledPattern = true;
     }
     
 }
