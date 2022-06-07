@@ -24,7 +24,6 @@ import com.google.gson.reflect.TypeToken;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import tk.freaxsoftware.extras.bus.MessageStatus;
-import tk.freaxsoftware.extras.bus.bridge.http.exceptions.HttpBridgeException;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 
 /**
@@ -40,7 +39,7 @@ public class HttpMessageEntryUtil {
      * @param object json object;
      * @return parsed http message entry;
      */
-    public HttpMessageEntry deserialize(JsonObject object) {
+    public HttpMessageEntry deserialize(JsonObject object) throws ClassNotFoundException {
         String id = object.get("id").getAsString();
         String trxId = object.get("trxId").getAsString();
         String topic = object.get("topic").getAsString();
@@ -50,13 +49,9 @@ public class HttpMessageEntryUtil {
         Map<String, String> headers = gson.fromJson(object.get("headers"), new TypeToken<Map<String, String>>(){}.getType());
         HttpMessageEntry entry;
         if (object.has("fullTypeName")) {
-            try {
-                Class fullType = Class.forName(object.get("fullTypeName").getAsString());
-                Object content = gson.fromJson(object.get("content"), fullType);
-                entry = new HttpMessageEntry(id, trxId, created, updated, status, topic, headers, content);
-            } catch (ClassNotFoundException cex) {
-                throw new HttpBridgeException(cex.getMessage());
-            }
+            Class fullType = Class.forName(object.get("fullTypeName").getAsString());
+            Object content = gson.fromJson(object.get("content"), fullType);
+            entry = new HttpMessageEntry(id, trxId, created, updated, status, topic, headers, content);
         } else {
             entry = new HttpMessageEntry(id, trxId, created, updated, status, topic, headers, null);
         }
