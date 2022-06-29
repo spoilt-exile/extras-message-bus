@@ -113,9 +113,11 @@ public class MessageBusInit {
         PropertyConfigProcessor.process(config);
         executor = new BlockExecutor(config.getThreadPoolConfig().buildThreadPool());
         
+        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
+        
         if (config.getBridgeServer() != null) {
             server = new MessageServer();
-            server.init(config.getBridgeServer());
+            server.init(config.getBridgeServer(), interceptor);
             
             if (config.getBridgeClient() != null) {
                 clientSender = new MessageClientSender(config.getBridgeServer(), config.getBridgeClient());
@@ -152,8 +154,6 @@ public class MessageBusInit {
                 }
             }
         }
-        
-        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
     }
     
     private MessageBusConfig readDefault() {

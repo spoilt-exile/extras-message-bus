@@ -20,6 +20,7 @@ package tk.freaxsoftware.extras.bus.storage;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -65,6 +66,11 @@ public class InMemoryMessageStorage implements MessageStorage {
                 .filter(entry -> entry.getValue().getStatus() == MessageStatus.GROUPING 
                         && entry.getValue().getOptions().getDeliveryPolicy() != MessageOptions.DeliveryPolicy.CALL)
                 .map(entry -> entry.getValue()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Optional<MessageHolder> getMessageById(String id) {
+        return Optional.ofNullable(storage.get(id));
     }
 
     @Override

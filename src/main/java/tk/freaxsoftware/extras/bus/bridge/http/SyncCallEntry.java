@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2020 Freax Software
+ * Copyright (C) 2022 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,32 +16,34 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package tk.freaxsoftware.extras.bus.storage;
+package tk.freaxsoftware.extras.bus.bridge.http;
 
-import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 
 /**
- * Dummy storage interceptor.
+ * Contains all data required to refresh status of message on caller node.
  * @author Stanislav Nepochatov
- * @since 5.0
  */
-public class DummyStorageInterceptor implements StorageInterceptor {
+public class SyncCallEntry {
     
-    private final DummyStorage dummyStorage = new DummyStorage();
+    private String uuid;
+    
+    private MessageStatus status;
 
-    @Override
-    public void storeMessage(MessageHolder holder) {
-        //Do nothing.
+    public String getUuid() {
+        return uuid;
     }
 
-    @Override
-    public void storeProcessedMessage(MessageHolder holder) {
-        //Do nothing.
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
-    @Override
-    public MessageStorage getStorage() {
-        return dummyStorage;
+    public MessageStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MessageStatus status) {
+        this.status = status;
     }
     
 }

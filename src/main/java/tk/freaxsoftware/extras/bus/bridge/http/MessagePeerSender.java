@@ -29,6 +29,7 @@ import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 
 /**
@@ -159,6 +160,8 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
             if (response != null) {
                 message.getResponse().setContent(response.getContent());
                 message.getResponse().setHeaders(response.getHeaders());
+            } else if (message.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+                message.setStatus(MessageStatus.REMOTE_PROCESSING);
             }
         }
     }

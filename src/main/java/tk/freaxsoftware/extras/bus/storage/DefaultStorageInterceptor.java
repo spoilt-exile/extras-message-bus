@@ -113,6 +113,11 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
             storeMessage(holder);
         }
     }
+
+    @Override
+    public MessageStorage getStorage() {
+        return this.storage;
+    }
     
     private class RedeliveryJob implements Runnable {
         

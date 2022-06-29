@@ -67,7 +67,9 @@ public class CallMessageExecutor extends MessageExecutor {
                     holder.setStatus(MessageStatus.CALLBACK);
                     holder.getOptions().getCallback().callback(holder.getResponse());
                 }
-                holder.setStatus(MessageStatus.FINISHED);
+                if (holder.getStatus() != MessageStatus.REMOTE_PROCESSING) {
+                    holder.setStatus(MessageStatus.FINISHED);
+                }
                 init.getInterceptor().storeProcessedMessage(holder);
                 break;
             }

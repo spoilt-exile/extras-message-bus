@@ -35,6 +35,11 @@ public enum MessageStatus {
     PROCESSING,
     
     /**
+     * Message delivered to remote node and processing alredy started. Will be notified later.
+     */
+    REMOTE_PROCESSING,
+    
+    /**
      * Message processed by receiver and now processing callback.
      */
     CALLBACK,

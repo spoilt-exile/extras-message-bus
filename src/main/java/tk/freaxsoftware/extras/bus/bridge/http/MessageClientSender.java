@@ -28,6 +28,7 @@ import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.config.http.ClientConfig;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
@@ -99,6 +100,8 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         if (response != null) {
             message.getResponse().setHeaders(response.getHeaders());
             message.getResponse().setContent(response.getContent());
+        } else if (message.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+            message.setStatus(MessageStatus.REMOTE_PROCESSING);
         }
     }
     

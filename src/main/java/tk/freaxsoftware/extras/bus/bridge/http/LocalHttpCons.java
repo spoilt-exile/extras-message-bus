@@ -31,6 +31,11 @@ public class LocalHttpCons {
     protected static final String L_HTTP_URL = "/broker/message";
     
     /**
+     * Url for listening on sync calls.
+     */
+    protected static final String L_HTTP_SYNC_URL = "/broker/sync";
+    
+    /**
      * Message notification of subscription over HTTP.
      */
     public static final String L_HTTP_SUBSCRIBE_TOPIC = "Local.Http.Message.Subscribe";
@@ -79,6 +84,11 @@ public class LocalHttpCons {
      * Local HTTP header for node port number.
      */
     public static final String L_HTTP_NODE_PORT_HEADER = "Local.Http.Header.NodePort";
+    
+    /**
+     * Local HTTP header for enabling sync call for node to refresh state of message.
+     */
+    public static final String L_HTTP_NODE_SYNC_CALL_HEADER = "Local.Http.Header.SyncCall";
     
     /**
      * Enum for HTTP bridging mode.

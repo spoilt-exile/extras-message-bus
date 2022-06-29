@@ -48,7 +48,8 @@ public class StoreMessageExecutor extends MessageExecutor {
             subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
                 try {
                     rc.receive(holder);
-                    if (holder.getStatus() != MessageStatus.GROUPING) {
+                    if (holder.getStatus() != MessageStatus.GROUPING && 
+                            holder.getStatus() != MessageStatus.REMOTE_PROCESSING) {
                         holder.setStatus(MessageStatus.FINISHED);
                     }
                     init.getInterceptor().storeProcessedMessage(holder);

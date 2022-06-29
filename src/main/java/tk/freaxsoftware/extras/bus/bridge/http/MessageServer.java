@@ -21,6 +21,7 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.javalin.Javalin;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageBus;
@@ -28,8 +29,11 @@ import tk.freaxsoftware.extras.bus.MessageContext;
 import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonMapper;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptor;
 
 /**
  * Message server endpoint.
@@ -47,8 +51,9 @@ public class MessageServer {
     /**
      * Deploy spark endpoint for message listening. It will config spark if config not nested.
      * @param config server config;
+     * @param interceptor message storage interceptor;
      */
-    public void init(ServerConfig config) {
+    public void init(ServerConfig config, StorageInterceptor interceptor) {
         LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
         Javalin app = Javalin.create(javalinConfig -> {
             javalinConfig.jsonMapper(new GsonMapper());
@@ -74,7 +79,11 @@ public class MessageServer {
                     }).build();
                     break;
                 default:
-                    options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
+                    if (entry.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+                        options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).callback(new SyncCallback(entry.getHeaders(), entry.getId())).build();
+                    } else {
+                        options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
+                    }
             }
             holder.setOptions(options);
             MessageBus.fire(holder);
@@ -83,6 +92,20 @@ public class MessageServer {
             } else {
                 ctx.status(200);
             }
+        });
+        
+        app.post(LocalHttpCons.L_HTTP_SYNC_URL, ctx -> {
+            SyncCallEntry syncCall = GsonUtils.getGson().fromJson(ctx.body(), SyncCallEntry.class);
+            Optional<MessageHolder> messageOpt = interceptor.getStorage().getMessageById(syncCall.getUuid());
+            messageOpt.ifPresent(mh -> {
+                mh.setStatus(syncCall.getStatus());
+                if (mh.getStatus() == MessageStatus.FINISHED) {
+                    interceptor.storeProcessedMessage(mh);
+                } else {
+                    interceptor.storeMessage(mh);
+                }
+            });
+            ctx.status(200);
         });
     }
     
