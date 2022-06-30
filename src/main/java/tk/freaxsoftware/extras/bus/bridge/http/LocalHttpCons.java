@@ -91,6 +91,11 @@ public class LocalHttpCons {
     public static final String L_HTTP_NODE_SYNC_CALL_HEADER = "Local.Http.Header.SyncCall";
     
     /**
+     * Local HTTP header registered type id.
+     */
+    public static final String L_HTTP_NODE_REGISTERED_TYPE_HEADER = "Local.Http.Header.RegisteredType";
+    
+    /**
      * Enum for HTTP bridging mode.
      */
     public static enum Mode {

@@ -1,4 +1,4 @@
-/*
+  /*
  * This file is part of MessageBus library.
  * 
  * Copyright (C) 2015 Freax Software
@@ -80,7 +80,7 @@ public class HttpMessageEntry<T> {
     private String fullTypeName;
     
     /**
-     * Simple typename of the content class.
+     * Name of type in resolver.
      */
     private String typeName;
     
@@ -105,7 +105,9 @@ public class HttpMessageEntry<T> {
         this.content = holder.getContent();
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
-            this.typeName = this.content.getClass().getSimpleName();
+            if (headers.containsKey(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER)) {
+                this.typeName = headers.get(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER);
+            }
         }
     }
 
@@ -131,7 +133,9 @@ public class HttpMessageEntry<T> {
         this.content = content;
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
-            this.typeName = this.content.getClass().getSimpleName();
+            if (headers.containsKey(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER)) {
+                this.typeName = headers.get(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER);
+            }
         }
     }
 
@@ -265,7 +269,9 @@ public class HttpMessageEntry<T> {
         this.content = response.getContent();
         if (this.content != null) {
             this.fullTypeName = this.content.getClass().getCanonicalName();
-            this.typeName = this.content.getClass().getSimpleName();
+            if (headers.containsKey(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER)) {
+                this.typeName = headers.get(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER);
+            }
         }
     }
     
