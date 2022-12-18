@@ -21,11 +21,12 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.MessageHolder;
@@ -73,7 +74,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     public MessagePeerSender(String address, Integer port) {
         this.address = address;
         this.port = port;
-        this.subscriptions = new ConcurrentHashSet<>();
+        this.subscriptions = Collections.synchronizedSet(new HashSet());
         this.beat = LocalDateTime.now();
         this.beatLock = new ReentrantLock();
     }

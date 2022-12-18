@@ -19,9 +19,10 @@
 package tk.freaxsoftware.extras.bus.bridge.http.util;
 
 import com.google.gson.Gson;
-import io.javalin.plugin.json.JsonMapper;
+import io.javalin.json.JsonMapper;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 
@@ -37,23 +38,23 @@ public class GsonMapper implements JsonMapper {
     private final Gson gson = GsonUtils.getGson();
 
     @Override
-    public String toJsonString(Object obj) {
-        return gson.toJson(obj);
+    public String toJsonString(Object obj, Type type) {
+        return gson.toJson(obj, type);
     }
 
     @Override
-    public InputStream toJsonStream(Object obj) {
-        return IOUtils.toInputStream(gson.toJson(obj), Charset.defaultCharset());
+    public InputStream toJsonStream(Object obj, Type type) {
+        return IOUtils.toInputStream(gson.toJson(obj, type), Charset.defaultCharset());
     }
 
     @Override
-    public <T> T fromJsonString(String json, Class<T> targetClass) {
-        return gson.fromJson(json, targetClass);
+    public <T> T fromJsonString(String json, Type targetType) {
+        return gson.fromJson(json, targetType);
     }
 
     @Override
-    public <T> T fromJsonStream(InputStream json, Class<T> targetClass) {
-        return gson.fromJson(new InputStreamReader(json), targetClass);
+    public <T> T fromJsonStream(InputStream json, Type targetType) {
+        return gson.fromJson(new InputStreamReader(json), targetType);
     }
     
 }

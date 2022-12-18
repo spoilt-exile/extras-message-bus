@@ -18,10 +18,11 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalCons;
@@ -51,7 +52,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
-    private final Set<String> subscriptions = new ConcurrentHashSet<>();
+    private final Set<String> subscriptions = Collections.synchronizedSet(new HashSet());
     
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
     
