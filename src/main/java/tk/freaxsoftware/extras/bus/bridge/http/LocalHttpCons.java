@@ -19,6 +19,9 @@
 
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import com.google.gson.reflect.TypeToken;
+import java.util.Set;
+
 /**
  * Local constants class related to http bridge.
  * @author Stanislav Nepochatov
@@ -49,6 +52,16 @@ public class LocalHttpCons {
      * Message notification for node heartbeat over HTTP.
      */
     public static final String L_HTTP_HEARTBEAT_TOPIC = "Local.Http.Message.HeartBeat";
+    
+    /**
+     * Type name for content of heartbeat message over HTTP (copy of subscriptions).
+     */
+    public static final String L_HTTP_HEARTBEAT_TYPE_NAME = "HeartBeatSet";
+    
+    /**
+     * Type token for content of heartbeat message over HTTP (copy of subscriptions).
+     */
+    public static final TypeToken L_HTTP_HEARTBEAT_TYPE_TOKEN = new TypeToken<Set<String>>() {};
     
     /**
      * Message notification to init cross connections.

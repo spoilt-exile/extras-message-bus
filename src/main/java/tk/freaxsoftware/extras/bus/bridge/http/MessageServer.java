@@ -59,6 +59,8 @@ public class MessageServer {
             javalinConfig.jsonMapper(new GsonMapper());
         }).start(config.getHttpPort());
         
+        TypeResolver.register(LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME, LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_TOKEN);
+        
         app.post(LocalHttpCons.L_HTTP_URL, ctx -> {
             JsonObject bodyJson = new JsonParser().parse(ctx.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);

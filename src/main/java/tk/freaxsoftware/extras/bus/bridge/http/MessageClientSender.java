@@ -73,7 +73,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
                 public void run() {
                     while (true) {
                         try {
-                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().build());
+                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().header(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER, LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME).build());
                         } catch (Exception ex) {
                             LOGGER.error("Can't send heartbeat, maybe server is offline, reinit connection", ex);
                         }

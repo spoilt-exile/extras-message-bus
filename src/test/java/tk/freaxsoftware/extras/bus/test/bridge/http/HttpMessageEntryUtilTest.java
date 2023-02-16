@@ -27,6 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -34,6 +35,7 @@ import org.junit.Test;
 import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.bridge.http.HttpMessageEntry;
 import tk.freaxsoftware.extras.bus.bridge.http.HttpMessageEntryUtil;
+import tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons;
 import tk.freaxsoftware.extras.bus.bridge.http.TypeResolver;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 
@@ -46,6 +48,7 @@ public class HttpMessageEntryUtilTest {
     private final static String ENTRY_TYPE_NAME = "MapOfEntry";
     
     private final static String FULL_TYPE_MESSAGE = "message_with_fulltype.json";
+    private final static String HEARTBEAT_MESSAGE = "message_heartbeat.json";
     private final static String REG_TYPE_MESSAGE = "message_with_reg_type.json";
     
     private HttpMessageEntryUtil util = new HttpMessageEntryUtil();
@@ -64,6 +67,24 @@ public class HttpMessageEntryUtilTest {
         Assert.assertEquals(entry.getFullTypeName(), "java.math.BigDecimal");
         Assert.assertEquals(entry.getContent(), BigDecimal.ONE);
         Assert.assertNull(entry.getTypeName());
+    }
+    
+    @Test
+    public void deserializationHeartBeatByRegType() throws Exception {
+        TypeResolver.register(LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME, LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_TOKEN);
+        JsonObject json = JsonParser.parseReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(HEARTBEAT_MESSAGE))).getAsJsonObject();
+        HttpMessageEntry<Set<String>> entry = util.deserialize(json);
+        Assert.assertNotNull(entry.getId());
+        Assert.assertNotNull(entry.getTrxId());
+        Assert.assertNotNull(entry.getCreated());
+        Assert.assertNotNull(entry.getHeaders());
+        Assert.assertTrue(entry.getHeaders().size() == 2);
+        Assert.assertEquals(entry.getStatus(), MessageStatus.PROCESSING);
+        Assert.assertNotNull(entry.getHeaders());
+        Assert.assertEquals(entry.getTypeName(), LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME);
+        Assert.assertEquals(entry.getContent().size(), 2);
+        Assert.assertTrue(entry.getContent().contains("Test1"));
+        Assert.assertTrue(entry.getContent().contains("Test2"));
     }
     
     @Test
