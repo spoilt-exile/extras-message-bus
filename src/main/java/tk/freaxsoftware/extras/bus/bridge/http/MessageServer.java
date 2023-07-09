@@ -94,6 +94,7 @@ public class MessageServer {
             } else {
                 ctx.status(200);
             }
+            MessageContextHolder.clearContext();
         });
         
         app.post(LocalHttpCons.L_HTTP_SYNC_URL, ctx -> {

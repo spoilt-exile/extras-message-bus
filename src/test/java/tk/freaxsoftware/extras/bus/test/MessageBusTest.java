@@ -151,6 +151,14 @@ public class MessageBusTest {
         assertEquals("TEST", holder.getTrxId());
     }
     
+    @Test
+    public void clearContextTest() {
+        MessageContextHolder.setContext(new MessageContext("TEST"));
+        MessageContextHolder.clearContext();
+        MessageHolder holder = new MessageHolder();
+        assertNotEquals("TEST", holder.getTrxId());
+    }
+    
     @After
     public void tearDown() {
         MessageBus.clearBus();

@@ -38,4 +38,10 @@ public class MessageContextHolder {
         context.set(messageContext);
     }
     
+    public static void clearContext() {
+        if (context.get() != null) {
+            context.remove();
+        }
+    }
+    
 }
