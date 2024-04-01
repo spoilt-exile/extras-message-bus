@@ -48,4 +48,12 @@ public abstract class MessageExecutor {
      */
     public abstract void exec();
     
+    /**
+     * Check if new arrived message is already present in message storage. May be used to skip duplicates.
+     * @param uuid message unique uuid;
+     * @return true if message is present / false if no message in storage;
+     */
+    protected boolean isMessagePresent(String uuid) {
+        return init.getInterceptor().getStorage().getMessageById(uuid).isPresent();
+    }
 }

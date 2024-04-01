@@ -42,6 +42,10 @@ public class StoreMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
+        if (isMessagePresent(holder.getId()) && holder.getStatus() != MessageStatus.ERROR) {
+            LOGGER.info("Message {} already present in storage, skipping;", holder.getId());
+            return;
+        }
         MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
         init.getInterceptor().storeMessage(holder);
         if (subscription != null) {
