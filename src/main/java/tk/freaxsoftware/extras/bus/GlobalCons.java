@@ -48,4 +48,9 @@ public class GlobalCons {
      * Global header for exception message. May be overrided by last executed receiver.
      */
     public static final String G_EXCEPTION_MESSAGE_HEADER = "Global.Headers.ExceptionMessage";
+    
+    /**
+     * Global header for marking messages in redelivery mode.
+     */
+    public static final String G_REDELIVERY_MODE_HEADER = "Global.Headers.RedeliveryMode";
 }

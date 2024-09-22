@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
@@ -154,6 +155,7 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                             LOGGER.info("Processing message {} to topic {} attempts left {}", 
                                     holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
                             holder.decreaseRedeliveryCounter();
+                            holder.getHeaders().putIfAbsent(GlobalCons.G_REDELIVERY_MODE_HEADER, "true");
                             MessageBus.fire(holder);
                         }
                     }

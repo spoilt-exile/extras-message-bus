@@ -42,7 +42,7 @@ public class StoreMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
-        if (isMessagePresent(holder.getId()) && holder.getStatus() != MessageStatus.ERROR) {
+        if (isMessagePresent(holder.getId()) && !holder.getHeaders().containsKey(GlobalCons.G_REDELIVERY_MODE_HEADER)) {
             LOGGER.info("Message {} already present in storage, skipping;", holder.getId());
             return;
         }
