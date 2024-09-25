@@ -17,6 +17,16 @@ MessageBus.addSubscription("Test.Message", (message) -> {
 });
 ```
 
+or by subscribing to pattern:
+
+```java
+MessageBus.addSubscription("Test.*", (message) -> {
+    System.out.printf("System pattern message received %s", holder.getTopic());
+});
+```
+
+Pattern matched receivers will be processed after main execution routine and only in async mode.
+
 Bulk subscription possible by `addSubscriptions(stringArray, receiver)`
 
 Each message contains:
