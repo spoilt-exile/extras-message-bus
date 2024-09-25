@@ -1,3 +1,12 @@
+# [6.0] - 25.09.2024
+ - Add ability to specify custom config during init;
+ - Break cross-connections if heartbeat expired;
+ - Javalin migration;
+ - Java 21 migration;
+ - Add pattern matching subscriptions;
+ - Add async mechanism to update status of the message;
+ - Skip processing of already present messages in storage (except redelivery);
+
 # [5.3] - 01.05.2022
  - Fix stability issues;
 

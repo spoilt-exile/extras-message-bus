@@ -22,9 +22,12 @@ package tk.freaxsoftware.extras.bus;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static tk.freaxsoftware.extras.bus.bridge.http.LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC;
 import tk.freaxsoftware.extras.bus.exceptions.ExceptionServices;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
@@ -44,13 +47,23 @@ public final class MessageBus {
     private static final List<Subscription> subscriptions = new CopyOnWriteArrayList<>();
     
     /**
+     * List of pattern match subscriptions for messages.
+     */
+    private static final List<PatternSubscription> patternSubscriptions = new CopyOnWriteArrayList<>();
+    
+    /**
      * Message bus init util.
      */
     private static MessageBusInit init = new MessageBusInit();
     
     /**
+     * Set of topic names to filter out from logging.
+     */
+    private static final Set<String> filterLogTopics = Set.of(L_HTTP_HEARTBEAT_TOPIC);
+    
+    /**
      * Subscribe receiver for message with following topic.
-     * @param topic message topic destination;
+     * @param topic message topic destination. If topic contains any symbol beside letters, digits and dot it will be handled as pattern subscription;
      * @param receiver message receiver;
      */
     public static void addSubscription(final String topic, final Receiver receiver) {
@@ -58,14 +71,26 @@ public final class MessageBus {
         if (topic == null || receiver == null) {
             throw new ReceiverRegistrationException("Can't processed registration with null references!");
         }
-        LOGGER.info("add new subscription for " + topic);
-        Subscription subscription = getSubscription(topic);
-        if (subscription == null) {
-            subscription = new Subscription(topic);
-            subscription.addReceiver(receiver);
-            subscriptions.add(subscription);
+        boolean isPattern = !topic.matches("^[a-zA-Z0-9.]+$");
+        LOGGER.info("Add new subscription for {} is pattern {}", topic, isPattern);
+        if (isPattern) {
+            PatternSubscription patternSubscription = getPatternSubscription(topic);
+            if (patternSubscription == null) {
+                patternSubscription = new PatternSubscription(topic);
+                patternSubscription.addReceiver(receiver);
+                patternSubscriptions.add(patternSubscription);
+            } else {
+                patternSubscription.addReceiver(receiver);
+            }
         } else {
-            subscription.addReceiver(receiver);
+            Subscription subscription = getSubscription(topic);
+            if (subscription == null) {
+                subscription = new Subscription(topic);
+                subscription.addReceiver(receiver);
+                subscriptions.add(subscription);
+            } else {
+                subscription.addReceiver(receiver);
+            }
         }
         MessageBus.fire(GlobalCons.G_SUBSCRIBE_TOPIC, receiver, 
                 MessageOptions.Builder.newInstance().async().broadcast()
@@ -89,22 +114,33 @@ public final class MessageBus {
      * @return true if there is valid subsciription for topic / false if there is none;
      */
     public static boolean isSubscribed(final String topic) {
-        return getSubscription(topic) != null;
+        return getSubscription(topic) != null || getPatternSubscription(topic) != null;
     }
     
     /**
      * Unsubscribe following receiver from message topic.
-     * @param topic message topic destination;
+     * @param topic message topic destination. If topic contains any symbol beside letters, digits and dot it will be handled as pattern subscription;
      * @param receiver the same receiver instance which were using during subscription;
      */
     public static void removeSubscription(final String topic, final Receiver receiver) {
-        LOGGER.info("removing subscription for " + topic);
         init();
-        Subscription subscription = getSubscription(topic);
-        if (subscription != null) {
-            subscription.getReceivers().remove(receiver);
-            if (subscription.getReceivers().isEmpty()) {
-                subscriptions.remove(subscription);
+        boolean isPattern = !topic.matches("^[a-zA-Z0-9.]+$");
+        LOGGER.info("Removing subscription for {} is patter {}", topic, isPattern);
+        if (isPattern) {
+            PatternSubscription patternSubscription = getPatternSubscription(topic);
+            if (patternSubscription != null) {
+                patternSubscription.getReceivers().remove(receiver);
+                if (patternSubscription.getReceivers().isEmpty()) {
+                    subscriptions.remove(patternSubscription);
+                }
+            }
+        } else {
+            Subscription subscription = getSubscription(topic);
+            if (subscription != null) {
+                subscription.getReceivers().remove(receiver);
+                if (subscription.getReceivers().isEmpty()) {
+                    subscriptions.remove(subscription);
+                }
             }
         }
         MessageBus.fire(GlobalCons.G_UNSUBSCRIBE_TOPIC, receiver, 
@@ -163,7 +199,9 @@ public final class MessageBus {
      */
     public static <T> void fire(final String topic, final T content, final MessageOptions options) {
         MessageHolder<T> holder = new MessageHolder<>(topic, options, content);
-        LOGGER.info("Message with topic {} fired to bus", topic);
+        if (!filterLogTopics.contains(topic)) {
+            LOGGER.info("Message with topic {} fired to bus", topic);
+        }
         fire(holder);
     }
     
@@ -181,6 +219,7 @@ public final class MessageBus {
         init.getExecutor().execute(
                 MessageExecutorFactory.newExecutor(holder, subscription, init), holder.getOptions().isAsync()
         );
+        processPatternSubscriptions(holder);
     }
     
     /**
@@ -216,6 +255,7 @@ public final class MessageBus {
                 ExceptionServices.callback(holder.getResponse());
                 break;
             }
+            processPatternSubscriptions(holder);
             if (holder.getStatus() != MessageStatus.FINISHED) {
                 LOGGER.warn("Message {} on topic {} exhaust redelivery attempts, dropping.", 
                         holder.getId(), holder.getTopic());
@@ -229,17 +269,60 @@ public final class MessageBus {
     }
     
     /**
-     * Get subscription for message id;
-     * @param messageId id of message to address;
+     * Process message for pattern matching receivers.
+     * @param holder message holder;
+     */
+    private static void processPatternSubscriptions(MessageHolder holder) {
+        final Set<Receiver> patterReceivers = getPatternSubscriptionReceivers(holder.getTopic());
+        init.getExecutor().executeAsync(() -> {
+            patterReceivers.forEach(rec -> {
+                try {
+                    rec.receive(holder);
+                } catch (Exception ex) {
+                    LOGGER.error("Receiver " + rec.getClass().getName() + " for topic " + holder.getTopic() + " throws exception", ex);
+                }
+            });
+        });
+    }
+    
+    /**
+     * Get subscription for message topic;
+     * @param topic topic of message to address;
      * @return subscription holder;
      */
-    private static Subscription getSubscription(final String messageId) {
+    private static Subscription getSubscription(final String topic) {
         for (Subscription subscription: subscriptions) {
-            if (Objects.equals(subscription.getTopic(), messageId)) {
+            if (Objects.equals(subscription.getTopic(), topic)) {
                 return subscription;
             }
         }
         return null;
+    }
+    
+    /**
+     * Get pattern subscription for message topic without pattern matching;
+     * @param topicPattern topic pattern of message to address;
+     * @return subscription holder;
+     */
+    private static PatternSubscription getPatternSubscription(final String topicPattern) {
+        for (PatternSubscription subscription: patternSubscriptions) {
+            if (Objects.equals(subscription.getPattern(), topicPattern)) {
+                return subscription;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get pattern subscription for message topic;
+     * @param topic topic of message to address;
+     * @return subscription holder;
+     */
+    private static Set<Receiver> getPatternSubscriptionReceivers(final String topic) {
+        return patternSubscriptions.stream()
+                .filter(sub -> sub.isMatched(topic))
+                .flatMap(sub -> sub.getReceivers().stream())
+                .collect(Collectors.toSet());
     }
     
     /**

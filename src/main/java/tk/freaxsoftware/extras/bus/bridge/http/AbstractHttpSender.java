@@ -78,11 +78,11 @@ public abstract class AbstractHttpSender {
                 HttpMessageEntry responseEntry = messageUtil.deserialize(bodyJson);
                 return responseEntry;
             } else {
-                throw new IllegalStateException(String.format("Node %s didn't return callback on message %s", address, entry.getTopic()));
+                throw new IllegalStateException(String.format("Node %s:%d didn't return callback on message %s", address, port, entry.getTopic()));
             }
         } else {
             if (response.getStatusLine().getStatusCode() > 400) {
-                throw new IllegalStateException(String.format("Node %s returns error status %d on message %s", address, response.getStatusLine().getStatusCode(), entry.getTopic()));
+                throw new IllegalStateException(String.format("Node %s:%d returns error status %d on message %s", address, port, response.getStatusLine().getStatusCode(), entry.getTopic()));
             }
         }
         return null;

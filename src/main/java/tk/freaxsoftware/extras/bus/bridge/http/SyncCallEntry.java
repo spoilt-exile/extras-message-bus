@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2020 Freax Software
+ * Copyright (C) 2022 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,32 +16,34 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.
  */
-package tk.freaxsoftware.extras.bus;
+package tk.freaxsoftware.extras.bus.bridge.http;
+
+import tk.freaxsoftware.extras.bus.MessageStatus;
 
 /**
- * Context holder.
+ * Contains all data required to refresh status of message on caller node.
  * @author Stanislav Nepochatov
- * @since 5.0
  */
-public class MessageContextHolder {
+public class SyncCallEntry {
     
-    private final static ThreadLocal<MessageContext> context = new ThreadLocal<>();
+    private String uuid;
     
-    public static MessageContext getContext() {
-        if (context.get() == null) {
-            context.set(new MessageContext());
-        }
-        return context.get();
+    private MessageStatus status;
+
+    public String getUuid() {
+        return uuid;
     }
-    
-    public static void setContext(MessageContext messageContext) {
-        context.set(messageContext);
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
-    
-    public static void clearContext() {
-        if (context.get() != null) {
-            context.remove();
-        }
+
+    public MessageStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(MessageStatus status) {
+        this.status = status;
     }
     
 }

@@ -21,14 +21,18 @@ package tk.freaxsoftware.extras.bus.bridge.http;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageHolder;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 
 /**
@@ -38,6 +42,11 @@ import tk.freaxsoftware.extras.bus.Receiver;
 public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(MessagePeerSender.class);
+    
+    /**
+     * List of topics which shouldn't be processed by peer sender.
+     */
+    private static final Set<String> unsafeTopics = Set.of(GlobalCons.G_SUBSCRIBE_TOPIC, GlobalCons.G_UNSUBSCRIBE_TOPIC);
     
     /**
      * Node address.
@@ -72,7 +81,7 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
     public MessagePeerSender(String address, Integer port) {
         this.address = address;
         this.port = port;
-        this.subscriptions = new ConcurrentHashSet<>();
+        this.subscriptions = Collections.synchronizedSet(new HashSet());
         this.beat = LocalDateTime.now();
         this.beatLock = new ReentrantLock();
     }
@@ -82,7 +91,8 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
      * @param ids set of ids to subscribe;
      */
     public void addSubscriptions(Set<String> ids) {
-        this.subscriptions.addAll(ids);
+        Set<String> safeIds = ids.stream().filter(id -> !unsafeTopics.contains(id)).collect(Collectors.toSet());
+        this.subscriptions.addAll(safeIds);
     }
     
     /**
@@ -90,6 +100,9 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
      * @param id message id;
      */
     public void addSubscription(String id) {
+        if (unsafeTopics.contains(id)) {
+            return;
+        }
         this.subscriptions.add(id);
     }
     
@@ -159,6 +172,8 @@ public class MessagePeerSender extends AbstractHttpSender implements Receiver {
             if (response != null) {
                 message.getResponse().setContent(response.getContent());
                 message.getResponse().setHeaders(response.getHeaders());
+            } else if (message.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+                message.setStatus(MessageStatus.REMOTE_PROCESSING);
             }
         }
     }

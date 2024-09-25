@@ -44,6 +44,10 @@ public class CallMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
+        if (isMessagePresent(holder.getId()) && !holder.getHeaders().containsKey(GlobalCons.G_REDELIVERY_MODE_HEADER)) {
+            LOGGER.info("Message {} already present in storage, skipping;", holder.getId());
+            return;
+        }
         MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
         init.getInterceptor().storeMessage(holder);
         if (subscription != null) {
@@ -67,7 +71,9 @@ public class CallMessageExecutor extends MessageExecutor {
                     holder.setStatus(MessageStatus.CALLBACK);
                     holder.getOptions().getCallback().callback(holder.getResponse());
                 }
-                holder.setStatus(MessageStatus.FINISHED);
+                if (holder.getStatus() != MessageStatus.REMOTE_PROCESSING) {
+                    holder.setStatus(MessageStatus.FINISHED);
+                }
                 init.getInterceptor().storeProcessedMessage(holder);
                 break;
             }

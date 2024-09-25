@@ -1,0 +1,26 @@
+{
+  "id": "3e3807c1-f092-465f-9f38-7de86eaef6c7",
+  "trxId": "3dd89138-85fb-4e9f-b14a-bfb1e33c91b1",
+  "created": "2022-06-30T23:49:01.601843+03:00[Europe/Kiev]",
+  "updated": "2022-06-30T23:49:01.608867+03:00[Europe/Kiev]",
+  "status": "PROCESSING",
+  "topic": "Message.Topic.Test",
+  "headers": {
+    "Header": "Test"
+  },
+  "typeName": "MapOfEntry",
+  "content": {
+    "Item1": {
+      "category": "Cat1",
+      "value": 3.14
+    },
+    "Item2": {
+      "category": "Cat1",
+      "value": 60.25
+    },
+    "Item3": {
+      "category": "Cat2",
+      "value": 13.45
+    }
+  }
+}

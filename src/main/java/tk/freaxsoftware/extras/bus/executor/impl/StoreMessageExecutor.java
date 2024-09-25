@@ -42,13 +42,18 @@ public class StoreMessageExecutor extends MessageExecutor {
 
     @Override
     public void exec() {
+        if (isMessagePresent(holder.getId()) && !holder.getHeaders().containsKey(GlobalCons.G_REDELIVERY_MODE_HEADER)) {
+            LOGGER.info("Message {} already present in storage, skipping;", holder.getId());
+            return;
+        }
         MessageContextHolder.setContext(new MessageContext(holder.getTrxId()));
         init.getInterceptor().storeMessage(holder);
         if (subscription != null) {
             subscription.getReceiversByMode(holder.getOptions().isBroadcast()).forEach(rc -> {
                 try {
                     rc.receive(holder);
-                    if (holder.getStatus() != MessageStatus.GROUPING) {
+                    if (holder.getStatus() != MessageStatus.GROUPING && 
+                            holder.getStatus() != MessageStatus.REMOTE_PROCESSING) {
                         holder.setStatus(MessageStatus.FINISHED);
                     }
                     init.getInterceptor().storeProcessedMessage(holder);

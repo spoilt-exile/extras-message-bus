@@ -38,7 +38,6 @@ public class HttpMessageEntryUtil {
      * Deseralize message entry from the json object.
      * @param object json object;
      * @return parsed http message entry;
-     * @throws ClassNotFoundException 
      */
     public HttpMessageEntry deserialize(JsonObject object) throws ClassNotFoundException {
         String id = object.get("id").getAsString();
@@ -49,14 +48,26 @@ public class HttpMessageEntryUtil {
         MessageStatus status = MessageStatus.valueOf(object.get("status").getAsString());
         Map<String, String> headers = gson.fromJson(object.get("headers"), new TypeToken<Map<String, String>>(){}.getType());
         HttpMessageEntry entry;
-        if (object.has("fullTypeName")) {
-            Class fullType = Class.forName(object.get("fullTypeName").getAsString());
-            Object content = gson.fromJson(object.get("content"), fullType);
+        TypeToken contentType = determineType(object);
+        if (object.has("typeName")) {
+            headers.put(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER, object.get("typeName").getAsString());
+        }
+        if (contentType != null) {
+            Object content = gson.fromJson(object.get("content"), contentType.getType());
             entry = new HttpMessageEntry(id, trxId, created, updated, status, topic, headers, content);
         } else {
             entry = new HttpMessageEntry(id, trxId, created, updated, status, topic, headers, null);
         }
         return entry;
+    }
+    
+    private TypeToken determineType(JsonObject object) throws ClassNotFoundException {
+        if (object.has("typeName") && TypeResolver.isTypeRegistered(object.get("typeName").getAsString())) {
+            return TypeResolver.resolveType(object.get("typeName").getAsString());
+        } else if (object.has("fullTypeName")) {
+            return TypeToken.get(Class.forName(object.get("fullTypeName").getAsString()));
+        }
+        return null;
     }
     
 }

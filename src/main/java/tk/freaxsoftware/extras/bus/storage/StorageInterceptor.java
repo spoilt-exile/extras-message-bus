@@ -43,4 +43,10 @@ public interface StorageInterceptor {
      * @param holder message to save;
      */
     void storeProcessedMessage(MessageHolder holder);
+    
+    /**
+     * Return storage.
+     * @return initiated storage;
+     */
+    MessageStorage getStorage();
 }

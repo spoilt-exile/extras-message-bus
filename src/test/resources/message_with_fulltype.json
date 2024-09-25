@@ -1,0 +1,13 @@
+{
+  "id": "c732b148-9f13-44f0-9630-0131a358cad5",
+  "trxId": "fc8715f2-e9ac-4b82-80cd-0b4b8abb6dea",
+  "created": "2022-06-30T23:09:38.016172+03:00[Europe/Kiev]",
+  "updated": "2022-06-30T23:09:38.023308+03:00[Europe/Kiev]",
+  "status": "PROCESSING",
+  "topic": "Message.Topic.Test",
+  "headers": {
+    "Header": "Test"
+  },
+  "fullTypeName": "java.math.BigDecimal",
+  "content": 1
+}

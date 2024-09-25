@@ -113,9 +113,11 @@ public class MessageBusInit {
         PropertyConfigProcessor.process(config);
         executor = new BlockExecutor(config.getThreadPoolConfig().buildThreadPool());
         
+        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
+        
         if (config.getBridgeServer() != null) {
             server = new MessageServer();
-            server.init(config.getBridgeServer());
+            server.init(config.getBridgeServer(), interceptor);
             
             if (config.getBridgeClient() != null) {
                 clientSender = new MessageClientSender(config.getBridgeServer(), config.getBridgeClient());
@@ -129,7 +131,7 @@ public class MessageBusInit {
                         && config.getBridgeClient().getCrossConnectionsReceives() != null) {
                     MessageBus.addSubscription(LocalHttpCons.L_HTTP_CROSS_NODE_TOPIC, clientSender);
                     CrossNode node = new CrossNode();
-                    node.setNodePort(config.getBridgeServer().isNested() ? spark.Spark.port() : config.getBridgeServer().getHttpPort());
+                    node.setNodePort(config.getBridgeServer().getHttpPort());
                     node.setReceiveTopics(config.getBridgeClient().getCrossConnectionsReceives());
                     node.setSendTopics(config.getBridgeClient().getCrossConnectionsSends());
                     node.setTag(config.getBridgeClient().getTag());
@@ -152,8 +154,6 @@ public class MessageBusInit {
                 }
             }
         }
-        
-        interceptor = StorageInterceptorFactory.interceptor(config.getStorage());
     }
     
     private MessageBusConfig readDefault() {

@@ -18,21 +18,22 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.javalin.Javalin;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.Request;
-import spark.Response;
-import static spark.Spark.*;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageContext;
 import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
+import tk.freaxsoftware.extras.bus.bridge.http.util.GsonMapper;
 import tk.freaxsoftware.extras.bus.bridge.http.util.GsonUtils;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
+import tk.freaxsoftware.extras.bus.storage.StorageInterceptor;
 
 /**
  * Message server endpoint.
@@ -48,28 +49,23 @@ public class MessageServer {
     private final HttpMessageEntryUtil messageUtil = new HttpMessageEntryUtil();
     
     /**
-     * Gson instance.
-     */
-    private final Gson gson = GsonUtils.getGson();
-    
-    /**
      * Deploy spark endpoint for message listening. It will config spark if config not nested.
      * @param config server config;
+     * @param interceptor message storage interceptor;
      */
-    public void init(ServerConfig config) {
-        if (!config.isNested()) {
-            LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
-            threadPool(config.getSparkThreadPoolMaxSize());
-            port(config.getHttpPort());
-        } else {
-            LOGGER.info("Using nested Spark instance.");
-        }
+    public void init(ServerConfig config, StorageInterceptor interceptor) {
+        LOGGER.info(String.format("Deploying new HTTP server on port %d", config.getHttpPort()));
+        Javalin app = Javalin.create(javalinConfig -> {
+            javalinConfig.jsonMapper(new GsonMapper());
+        }).start(config.getHttpPort());
         
-        post(LocalHttpCons.L_HTTP_URL, "application/json", (Request req, Response res) -> {
-            JsonObject bodyJson = new JsonParser().parse(req.body()).getAsJsonObject();
+        TypeResolver.register(LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME, LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_TOKEN);
+        
+        app.post(LocalHttpCons.L_HTTP_URL, ctx -> {
+            JsonObject bodyJson = new JsonParser().parse(ctx.body()).getAsJsonObject();
             HttpMessageEntry entry = messageUtil.deserialize(bodyJson);
             MessageContextHolder.setContext(new MessageContext(entry.getTrxId()));
-            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, req.ip());
+            entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_IP_HEADER, ctx.ip());
             LocalHttpCons.Mode mode = LocalHttpCons.Mode.valueOf((String) entry.getHeaders().getOrDefault(LocalHttpCons.L_HTTP_MODE_HEADER, LocalHttpCons.Mode.ASYNC.name()));
             HttpMessageEntry response = new HttpMessageEntry();
             MessageOptions options;
@@ -85,17 +81,35 @@ public class MessageServer {
                     }).build();
                     break;
                 default:
-                    options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
+                    if (entry.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+                        options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).callback(new SyncCallback(entry.getHeaders(), entry.getId())).build();
+                    } else {
+                        options = MessageOptions.Builder.newInstance().async().headers(entry.getHeaders()).build();
+                    }
             }
             holder.setOptions(options);
             MessageBus.fire(holder);
             if (response.getTopic() != null) {
-                return response;
+                ctx.json(response);
             } else {
-                res.status(200);
-                return "";
+                ctx.status(200);
             }
-        }, gson::toJson);
+            MessageContextHolder.clearContext();
+        });
+        
+        app.post(LocalHttpCons.L_HTTP_SYNC_URL, ctx -> {
+            SyncCallEntry syncCall = GsonUtils.getGson().fromJson(ctx.body(), SyncCallEntry.class);
+            Optional<MessageHolder> messageOpt = interceptor.getStorage().getMessageById(syncCall.getUuid());
+            messageOpt.ifPresent(mh -> {
+                mh.setStatus(syncCall.getStatus());
+                if (mh.getStatus() == MessageStatus.FINISHED) {
+                    interceptor.storeProcessedMessage(mh);
+                } else {
+                    interceptor.storeMessage(mh);
+                }
+            });
+            ctx.status(200);
+        });
     }
     
 }

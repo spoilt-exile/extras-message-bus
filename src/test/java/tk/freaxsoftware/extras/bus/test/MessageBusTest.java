@@ -22,6 +22,7 @@ import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.Callback;
@@ -31,6 +32,7 @@ import tk.freaxsoftware.extras.bus.MessageContext;
 import tk.freaxsoftware.extras.bus.MessageContextHolder;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.ResponseHolder;
 import tk.freaxsoftware.extras.bus.exceptions.NoSubscriptionMessageException;
 import tk.freaxsoftware.extras.bus.exceptions.ReceiverRegistrationException;
@@ -43,12 +45,13 @@ public class MessageBusTest {
     
     private final Logger logger = LoggerFactory.getLogger(MessageBusTest.class);
     
-    private static final String INCORRECT_MESSAGE = "MessageTest.INCORRECT_MESSAGE";
-    private static final String EMPTY_MESSAGE = "MessageTest.EMPTY_MESSAGE";
-    private static final String MULTIPLIE_MESSAGE = "MessageTest.MULTIPLIE_MESSAGE";
+    private static final String INCORRECT_MESSAGE = "MessageTest.Incorrect.Message";
+    private static final String EMPTY_MESSAGE = "MessageTest.Empty.Message";
+    private static final String MULTIPLIE_MESSAGE = "MessageTest.Multiplie.Message";
+    private static final String PATTERN_MESSAGE = "MessageTest.*";
     
-    private static final String ARG_MULTIPLIE_DIGIT1 = "MessageTest.Arg.MULTIPLIE_DIGIT1";
-    private static final String ARG_MULTIPLIE_DIGIT2 = "MessageTest.Arg.MULTIPLIE_DIGIT2";
+    private static final String ARG_MULTIPLIE_DIGIT1 = "MessageTest.Arg.digit1";
+    private static final String ARG_MULTIPLIE_DIGIT2 = "MessageTest.Arg.digit2";
     
     private static final String RES_MULTIPLIE = "MessageTest.Arg.RES";
     
@@ -148,6 +151,14 @@ public class MessageBusTest {
         assertEquals("TEST", holder.getTrxId());
     }
     
+    @Test
+    public void clearContextTest() {
+        MessageContextHolder.setContext(new MessageContext("TEST"));
+        MessageContextHolder.clearContext();
+        MessageHolder holder = new MessageHolder();
+        assertNotEquals("TEST", holder.getTrxId());
+    }
+    
     @After
     public void tearDown() {
         MessageBus.clearBus();
@@ -161,5 +172,14 @@ public class MessageBusTest {
                         .header(ARG_MULTIPLIE_DIGIT2, "2").build(), 
                 Integer.class);
         assertEquals(multiplied, new Integer(4));
+    }
+    
+    @Test
+    public void patternMessageCall() throws Exception {
+        Receiver recMock = Mockito.mock(Receiver.class);
+        MessageBus.addSubscription(PATTERN_MESSAGE, recMock);
+        MessageBus.fire(EMPTY_MESSAGE, "test");
+        Thread.sleep(2000);
+        Mockito.verify(recMock).receive(Mockito.any(MessageHolder.class));
     }
 }

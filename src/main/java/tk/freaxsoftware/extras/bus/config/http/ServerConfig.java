@@ -24,23 +24,11 @@ package tk.freaxsoftware.extras.bus.config.http;
  */
 public class ServerConfig {
     
-    private Boolean nested;
-    
     private Integer heartbeatRate;
     
     private Integer httpPort;
     
-    private Integer sparkThreadPoolMaxSize;
-    
     private Boolean crossConnections;
-
-    public Boolean isNested() {
-        return nested;
-    }
-
-    public void setNested(Boolean nested) {
-        this.nested = nested;
-    }
 
     public Integer getHeartbeatRate() {
         return heartbeatRate;
@@ -56,14 +44,6 @@ public class ServerConfig {
 
     public void setHttpPort(Integer httpPort) {
         this.httpPort = httpPort;
-    }
-
-    public Integer getSparkThreadPoolMaxSize() {
-        return sparkThreadPoolMaxSize;
-    }
-
-    public void setSparkThreadPoolMaxSize(Integer sparkThreadPoolMaxSize) {
-        this.sparkThreadPoolMaxSize = sparkThreadPoolMaxSize;
     }
 
     public Boolean getCrossConnections() {

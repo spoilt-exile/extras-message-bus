@@ -18,6 +18,7 @@
  */
 package tk.freaxsoftware.extras.bus.storage;
 
+import java.util.Optional;
 import java.util.Set;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 
@@ -53,6 +54,13 @@ public interface MessageStorage {
      * @return set of the messages by topic;
      */
     Set<MessageHolder> getGroupingMessagesByTopic(String topic);
+    
+    /**
+     * Get message by id.
+     * @param id unique id of the message;
+     * @return optional of the message;
+     */
+    Optional<MessageHolder> getMessageById(String id);
     
     /**
      * Removes message from the storage.

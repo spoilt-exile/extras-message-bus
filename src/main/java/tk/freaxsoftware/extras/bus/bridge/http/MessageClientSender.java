@@ -18,16 +18,18 @@
  */
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
+import tk.freaxsoftware.extras.bus.MessageStatus;
 import tk.freaxsoftware.extras.bus.Receiver;
 import tk.freaxsoftware.extras.bus.config.http.ClientConfig;
 import tk.freaxsoftware.extras.bus.config.http.ServerConfig;
@@ -50,7 +52,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
      */
     private final ServerConfig serverConfig;
     
-    private final Set<String> subscriptions = new ConcurrentHashSet<>();
+    private final Set<String> subscriptions = Collections.synchronizedSet(new HashSet());
     
     private ExecutorService threadService = Executors.newSingleThreadExecutor();
     
@@ -71,7 +73,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
                 public void run() {
                     while (true) {
                         try {
-                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().build());
+                            MessageBus.fire(LocalHttpCons.L_HTTP_HEARTBEAT_TOPIC, subscriptions, MessageOptions.Builder.newInstance().sync().broadcast().header(LocalHttpCons.L_HTTP_NODE_REGISTERED_TYPE_HEADER, LocalHttpCons.L_HTTP_HEARTBEAT_TYPE_NAME).build());
                         } catch (Exception ex) {
                             LOGGER.error("Can't send heartbeat, maybe server is offline, reinit connection", ex);
                         }
@@ -99,6 +101,8 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
         if (response != null) {
             message.getResponse().setHeaders(response.getHeaders());
             message.getResponse().setContent(response.getContent());
+        } else if (message.getHeaders().containsKey(LocalHttpCons.L_HTTP_NODE_SYNC_CALL_HEADER)) {
+            message.setStatus(MessageStatus.REMOTE_PROCESSING);
         }
     }
     
@@ -110,7 +114,7 @@ public class MessageClientSender extends AbstractHttpSender implements Receiver 
     private void setupEntry(MessageHolder message, HttpMessageEntry entry) {
         setupMessageMode(message, entry);
         //Add header with this node server port for back comminication.
-        entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_PORT_HEADER, serverConfig.isNested() ? String.valueOf(spark.Spark.port()) : serverConfig.getHttpPort().toString());
+        entry.getHeaders().put(LocalHttpCons.L_HTTP_NODE_PORT_HEADER, serverConfig.getHttpPort().toString());
         //Override if subscription message.
         if (entry.getTopic().equals(GlobalCons.G_SUBSCRIBE_TOPIC)) {
             subscriptions.add((String) entry.getHeaders().get(GlobalCons.G_SUBSCRIPTION_DEST_HEADER));

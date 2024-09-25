@@ -19,6 +19,9 @@
 
 package tk.freaxsoftware.extras.bus.bridge.http;
 
+import com.google.gson.reflect.TypeToken;
+import java.util.Set;
+
 /**
  * Local constants class related to http bridge.
  * @author Stanislav Nepochatov
@@ -29,6 +32,11 @@ public class LocalHttpCons {
      * Url for listening on messages.
      */
     protected static final String L_HTTP_URL = "/broker/message";
+    
+    /**
+     * Url for listening on sync calls.
+     */
+    protected static final String L_HTTP_SYNC_URL = "/broker/sync";
     
     /**
      * Message notification of subscription over HTTP.
@@ -44,6 +52,16 @@ public class LocalHttpCons {
      * Message notification for node heartbeat over HTTP.
      */
     public static final String L_HTTP_HEARTBEAT_TOPIC = "Local.Http.Message.HeartBeat";
+    
+    /**
+     * Type name for content of heartbeat message over HTTP (copy of subscriptions).
+     */
+    public static final String L_HTTP_HEARTBEAT_TYPE_NAME = "HeartBeatSet";
+    
+    /**
+     * Type token for content of heartbeat message over HTTP (copy of subscriptions).
+     */
+    public static final TypeToken L_HTTP_HEARTBEAT_TYPE_TOKEN = new TypeToken<Set<String>>() {};
     
     /**
      * Message notification to init cross connections.
@@ -79,6 +97,16 @@ public class LocalHttpCons {
      * Local HTTP header for node port number.
      */
     public static final String L_HTTP_NODE_PORT_HEADER = "Local.Http.Header.NodePort";
+    
+    /**
+     * Local HTTP header for enabling sync call for node to refresh state of message.
+     */
+    public static final String L_HTTP_NODE_SYNC_CALL_HEADER = "Local.Http.Header.SyncCall";
+    
+    /**
+     * Local HTTP header registered type id.
+     */
+    public static final String L_HTTP_NODE_REGISTERED_TYPE_HEADER = "Local.Http.Header.RegisteredType";
     
     /**
      * Enum for HTTP bridging mode.

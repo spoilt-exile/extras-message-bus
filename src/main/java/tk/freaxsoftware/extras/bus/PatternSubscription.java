@@ -1,7 +1,7 @@
 /*
  * This file is part of MessageBus library.
  * 
- * Copyright (C) 2015 Freax Software
+ * Copyright (C) 2020 Freax Software
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,42 +18,32 @@
  */
 package tk.freaxsoftware.extras.bus;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Message listener holder for specified message topic.
+ * Message listener for specified message topic pattern.
  * @author Stanislav Nepochatov
  */
-public class Subscription {
+public class PatternSubscription {
     
     /**
-     * Topic of message subscription.
+     * Topic pattern of message subscription.
      */
-    private final String topic;
+    private final String pattern;
     
     /**
      * Receivers list.
      */
     private List<Receiver> receivers;
-    
-    /**
-     * Instance of the round robin iterator.
-     */
-    private RoundRobinIterator<Receiver> roundRobinIterator;
-    
-    /**
-     * Default constructor.
-     * @param topic destination of subscription.
-     */
-    public Subscription(String topic) {
-        this.topic = topic;
+
+    public PatternSubscription(String pattern) {
+        this.pattern = pattern;
         receivers = new CopyOnWriteArrayList<>();
     }
 
-    public String getTopic() {
-        return topic;
+    public String getPattern() {
+        return pattern;
     }
 
     public List<Receiver> getReceivers() {
@@ -75,27 +65,8 @@ public class Subscription {
     public void removeReceiver(Receiver receiver) {
         this.receivers.remove(receiver);
     }
-
-    public RoundRobinIterator<Receiver> getRoundRobinIterator() {
-        if (roundRobinIterator == null) {
-            roundRobinIterator = new RoundRobinIterator<>(receivers);
-        }
-        return roundRobinIterator;
-    }
     
-    /**
-     * Get list of the receivers depending on mode.
-     * @param isBroadcast broadcast flag of the message.
-     * @return list with multiple receivers in case of broadcast or 
-     * list with single receiver in case of point-to-point message.
-     */
-    public List<Receiver> getReceiversByMode(Boolean isBroadcast) {
-        return isBroadcast ? receivers : wrapRoundRobin();
-    }
-    
-    private List<Receiver> wrapRoundRobin() {
-        List<Receiver> receiverList = new ArrayList(1);
-        receiverList.add(getRoundRobinIterator().next());
-        return receiverList;
-    }
+    public boolean isMatched(String topic) {
+        return topic.matches(pattern);
+    } 
 }

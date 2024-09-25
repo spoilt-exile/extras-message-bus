@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tk.freaxsoftware.extras.bus.GlobalCons;
 import tk.freaxsoftware.extras.bus.MessageBus;
 import tk.freaxsoftware.extras.bus.MessageHolder;
 import tk.freaxsoftware.extras.bus.MessageOptions;
@@ -113,6 +114,11 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
             storeMessage(holder);
         }
     }
+
+    @Override
+    public MessageStorage getStorage() {
+        return this.storage;
+    }
     
     private class RedeliveryJob implements Runnable {
         
@@ -128,10 +134,14 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
         @Override
         public void run() {
             LOGGER.info("Redelivery job started with period {} seconds", redeliveryPeriod);
+            int redeliverySize = 0;
             while (true) {
                 try {
                     Set<MessageHolder> holders = storage.getUnprocessedMessages();
-                    LOGGER.info("Redelivery entries batch size {}", holders.size());
+                    if (redeliverySize != holders.size()) {
+                        LOGGER.info("Redelivery entries batch size {}", holders.size());
+                        redeliverySize = holders.size();
+                    }
                     for (MessageHolder holder: holders) {
                         if ((config.getRedeliveryOnlyIfReceiversExists() && MessageBus.isSubscribed(holder.getTopic())) 
                                     || !config.getRedeliveryOnlyIfReceiversExists()) {
@@ -145,6 +155,7 @@ public class DefaultStorageInterceptor implements StorageInterceptor {
                             LOGGER.info("Processing message {} to topic {} attempts left {}", 
                                     holder.getId(), holder.getTopic(), holder.getRedeliveryCounter());
                             holder.decreaseRedeliveryCounter();
+                            holder.getHeaders().putIfAbsent(GlobalCons.G_REDELIVERY_MODE_HEADER, "true");
                             MessageBus.fire(holder);
                         }
                     }
